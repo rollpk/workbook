@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опрос настроения</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --container-bg-color: #2a2a3e;
+            --section-bg-color: #3e4a5e;
+            --text-color: #e0e0e0;
+            --title-color: #fff;
+            --button-color: #4A90E2;
+            --button-hover-color: #357ABD;
+            --border-color-dep: #D13E4E;
+            --border-color-anx: #FFA500;
+            --border-color-pos: #50C878;
+            --selected-bg-color: #4a5a6e; /* Цвет выбранной кнопки */
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: var(--container-bg-color);
+            border-radius: 12px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--title-color);
+            margin-top: 0;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: 2.2rem;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--button-color);
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        .question-section {
+            background-color: var(--section-bg-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+        .question-section.depression-section {
+            border: 2px solid var(--border-color-dep);
+        }
+        .question-section.anxiety-section {
+            border: 2px solid var(--border-color-anx);
+        }
+        .question-section.positive-section {
+            border: 2px solid var(--border-color-pos);
+        }
+        .question-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .question-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #4a5a6e;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: block;
+            color: var(--title-color);
+            font-size: 1.1rem;
+        }
+        .radio-options {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .radio-options label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px 5px;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.2s;
+            cursor: pointer;
+            width: 17%;
+            box-sizing: border-box;
+            background-color: #4a5a6e; /* Цвет фона невыбранной кнопки */
+            text-align: center;
+            position: relative;
+        }
+        .radio-options label span {
+            font-size: 1.1rem; /* Цифры побольше */
+            font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+        /* Стиль при наведении */
+        .radio-options label:hover {
+            background-color: #5d6d7e;
+            transform: translateY(-2px);
+        }
+        .radio-options input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }   /* Стиль для фона выбранной кнопки */
+        .radio-options input[type="radio"]:checked ~ span {
+            color: var(--button-color);
+        }
+        /* Стиль для цифр */
+        .radio-options label span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+        .radio-options input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        /* Стили для выбранной кнопки */
+        .radio-options input[type="radio"]:checked + span {
+            color: var(--button-color); /* Цвет цифры становится синим */
+            transform: scale(1.1);
+        }
+        .radio-options label:has(input[type="radio"]:checked) {
+            background-color: var(--button-color); /* Фон кнопки становится синим */
+        }
+        button {
+            margin-top: 30px;
+            padding: 15px 25px;
+            background-color: var(--button-color);
+            color: var(--title-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s;
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+        button:hover {
+            background-color: var(--button-hover-color);
+            transform: translateY(-2px);
+        }
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background-color: var(--section-bg-color);
+            border-radius: 10px;
+            border: 2px solid var(--button-color);
+        }
+        .score {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            color: var(--button-color);
+        }
+        #result-datetime {
+            font-size: 0.9rem;
+            color: #ccc;
+            text-align: right;
+            margin-top: 15px;
+        }
+        .score-description {
+            font-size: 1rem;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #4a5a6e;
+            border-radius: 8px;
+            border-left: 3px solid var(--button-color);
+        }
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            .question-section {
+                margin-top: 20px;
+                padding: 15px;
+            }
+            .radio-options {
+                justify-content: space-between;
+                gap: 5px;
+            }
+            .radio-options label {
+                width: 18%; /* Оптимизированный размер для 5 кнопок в ряд */
+                font-size: 0.8rem;
+                padding: 10px 5px;
+            }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.3rem; }
+            .radio-options label span {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Опрос настроения</h1>
+    <p class="instructions">Инструкция: Отметьте, как вы себя чувствуете прямо сейчас. Пожалуйста, ответьте на все пункты. Выберите один вариант для каждого вопроса.</p>
+
+    <form id="mood-survey">
+        <!-- Блок Депрессия -->
+        <div class="question-section depression-section">
+            <h2>Насколько подавленно вы себя чувствуете?</h2>
+            <ul class="question-list">
+                <li class="question-item">
+                    <span class="question-text">1. Грусть или подавленность</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="dep1" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="dep1" value="1"></label>
+                        <label><span>2</span><input type="radio" name="dep1" value="2"></label>
+                        <label><span>3</span><input type="radio" name="dep1" value="3"></label>
+                        <label><span>4</span><input type="radio" name="dep1" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">2. Чувство безнадёжности</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="dep2" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="dep2" value="1"></label>
+                        <label><span>2</span><input type="radio" name="dep2" value="2"></label>
+                        <label><span>3</span><input type="radio" name="dep2" value="3"></label>
+                        <label><span>4</span><input type="radio" name="dep2" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">3. Низкая самооценка, чувство никчемности</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="dep3" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="dep3" value="1"></label>
+                        <label><span>2</span><input type="radio" name="dep3" value="2"></label>
+                        <label><span>3</span><input type="radio" name="dep3" value="3"></label>
+                        <label><span>4</span><input type="radio" name="dep3" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">4. Потеря мотивации что-либо делать</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="dep4" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="dep4" value="1"></label>
+                        <label><span>2</span><input type="radio" name="dep4" value="2"></label>
+                        <label><span>3</span><input type="radio" name="dep4" value="3"></label>
+                        <label><span>4</span><input type="radio" name="dep4" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">5. Потеря интереса или удовольствия от жизни</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="dep5" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="dep5" value="1"></label>
+                        <label><span>2</span><input type="radio" name="dep5" value="2"></label>
+                        <label><span>3</span><input type="radio" name="dep5" value="3"></label>
+                        <label><span>4</span><input type="radio" name="dep5" value="4"></label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Блок Тревога -->
+        <div class="question-section anxiety-section">
+            <h2>Насколько тревожно вы себя чувствуете?</h2>
+            <ul class="question-list">
+                <li class="question-item">
+                    <span class="question-text">1. Чувство напряжения или беспокойства</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="anx1" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="anx1" value="1"></label>
+                        <label><span>2</span><input type="radio" name="anx1" value="2"></label>
+                        <label><span>3</span><input type="radio" name="anx1" value="3"></label>
+                        <label><span>4</span><input type="radio" name="anx1" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">2. Неспособность расслабиться</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="anx2" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="anx2" value="1"></label>
+                        <label><span>2</span><input type="radio" name="anx2" value="2"></label>
+                        <label><span>3</span><input type="radio" name="anx2" value="3"></label>
+                        <label><span>4</span><input type="radio" name="anx2" value="4"></label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Блок Позитивные чувства -->
+        <div class="question-section positive-section">
+            <h2>Позитивные чувства</h2>
+            <ul class="question-list">
+                <li class="question-item">
+                    <span class="question-text">1. Я чувствую себя ценным</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos1" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos1" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos1" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos1" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos1" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">2. Я хорошо отношусь к себе</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos2" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos2" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos2" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos2" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos2" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">3. Я чувствую близость к людям</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos3" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos3" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos3" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos3" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos3" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">4. Я чувствую, что добиваюсь чего-то</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos4" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos4" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos4" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos4" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos4" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">5. У меня есть мотивация что-то делать</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos5" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos5" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos5" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos5" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos5" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">6. Я чувствую себя спокойно и расслабленно</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos6" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos6" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos6" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos6" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos6" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">7. Я чувствую духовную связь с другими</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos7" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos7" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos7" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos7" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos7" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">8. Я чувствую надежду</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos8" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos8" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos8" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos8" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos8" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">9. Я чувствую воодушевление и оптимизм</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos9" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos9" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos9" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos9" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos9" value="4"></label>
+                    </div>
+                </li>
+                <li class="question-item">
+                    <span class="question-text">10. Моя жизнь меня устраивает</span>
+                    <div class="radio-options">
+                        <label><span>0</span><input type="radio" name="pos10" value="0" required></label>
+                        <label><span>1</span><input type="radio" name="pos10" value="1"></label>
+                        <label><span>2</span><input type="radio" name="pos10" value="2"></label>
+                        <label><span>3</span><input type="radio" name="pos10" value="3"></label>
+                        <label><span>4</span><input type="radio" name="pos10" value="4"></label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <button type="submit">Показать результат</button>
+    </form>
+</div>
+
+<div class="container result" id="result-container">
+    <h2>Ваш результат:</h2>
+    <p>Общий балл по депрессии: <span class="score" id="score-dep">0</span> из <span class="score" id="max-score-dep"></span></p>
+    <p>Общий балл по тревоге: <span class="score" id="score-anx">0</span> из <span class="score" id="max-score-anx"></span></p>
+    <p>Общий балл по позитивным чувствам: <span class="score" id="score-pos">0</span> из <span class="score" id="max-score-pos"></span></p>
+    <p id="result-datetime"></p>
+    <div class="score-description" id="description-dep"></div>
+    <div class="score-description" id="description-anx"></div>
+    <div class="score-description" id="description-pos"></div>
+</div>
+
+<script>
+    document.getElementById('mood-survey').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const depQuestions = ['dep1', 'dep2', 'dep3', 'dep4', 'dep5'];
+        const anxQuestions = ['anx1', 'anx2'];
+        const posQuestions = ['pos1', 'pos2', 'pos3', 'pos4', 'pos5', 'pos6', 'pos7', 'pos8', 'pos9', 'pos10'];
+
+        let depScore = 0;
+        let anxScore = 0;
+        let posScore = 0;
+
+        depQuestions.forEach(name => {
+            const selected = form.elements[name].value;
+            if (selected) depScore += parseInt(selected);
+        });
+
+        anxQuestions.forEach(name => {
+            const selected = form.elements[name].value;
+            if (selected) anxScore += parseInt(selected);
+        });
+
+        posQuestions.forEach(name => {
+            const selected = form.elements[name].value;
+            if (selected) posScore += parseInt(selected);
+        });
+
+        const maxDepScore = depQuestions.length * 4;
+        const maxAnxScore = anxQuestions.length * 4;
+        const maxPosScore = posQuestions.length * 4;
+
+        // Определяем описания
+        function getDepDescription(score) {
+            if (score <= 5) return 'У вас низкий уровень подавленности. Это нормальное состояние.';
+            if (score <= 10) return 'У вас умеренный уровень подавленности. Возможно, стоит обратить внимание на своё состояние.';
+            return 'У вас высокий уровень подавленности. Рекомендуется проконсультироваться со специалистом.';
+        }
+
+        function getAnxDescription(score) {
+            if (score <= 4) return 'У вас низкий уровень тревожности. Вы чувствуете себя спокойно.';
+            if (score <= 8) return 'У вас умеренный уровень тревожности. Возможны периодические переживания.';
+            return 'У вас высокий уровень тревожности. Важно найти способы расслабиться и справиться со стрессом.';
+        }
+
+        function getPosDescription(score) {
+            if (score <= 10) return 'У вас низкий уровень позитивных чувств. Постарайтесь найти больше поводов для радости.';
+            if (score <= 20) return 'У вас средний уровень позитивных чувств. Вы находитесь в сбалансированном состоянии.';
+            return 'У вас высокий уровень позитивных чувств. Вы находитесь в очень хорошем эмоциональном состоянии.';
+        }
+
+        // Получаем текущую дату и время
+        const now = new Date();
+        const formattedDate = `${('0' + now.getDate()).slice(-2)}.${('0' + (now.getMonth() + 1)).slice(-2)}.${now.getFullYear()}`;
+        const formattedTime = `${('0' + now.getHours()).slice(-2)}:${('0' + now.getMinutes()).slice(-2)}`;
+        
+        // Обновляем баллы и дату/время
+        document.getElementById('score-dep').textContent = depScore;
+        document.getElementById('score-anx').textContent = anxScore;
+        document.getElementById('score-pos').textContent = posScore;
+        document.getElementById('max-score-dep').textContent = maxDepScore;
+        document.getElementById('max-score-anx').textContent = maxAnxScore;
+        document.getElementById('max-score-pos').textContent = maxPosScore;
+        document.getElementById('result-datetime').textContent = `Дата и время прохождения: ${formattedDate} в ${formattedTime}`;
+
+        // Обновляем описания
+        document.getElementById('description-dep').textContent = getDepDescription(depScore);
+        document.getElementById('description-anx').textContent = getAnxDescription(anxScore);
+        document.getElementById('description-pos').textContent = getPosDescription(posScore);
+
+        // Показываем результаты и прокручиваем страницу
+        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+    });
+</script>
+
+</body>
+</html>
