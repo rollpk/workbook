@@ -65,7 +65,31 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 .side-drawer h3 {
   margin-left: 100px; /* смещение вправо от левого края */
 }
- 
+
+.section {
+  display: flex;
+  flex-direction: column;
+  height: 70vh; /* высота чата, можно подстроить */
+  position: relative;
+}
+
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px; /* чтобы поле ввода не перекрывало сообщения */
+}
+
+.fixed-input {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: sticky;   /* чтобы оставалось внизу при прокрутке */
+  bottom: 0;
+  background: var(--card);
+  padding: 10px;
+  border-radius: 12px 12px 0 0;
+}
+
   
 </style>
 </head>
@@ -79,28 +103,25 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   <button class="icon-btn" id="newChatBtn" style="margin-top:10px;">+ Новый чат</button>
 </div>
 
-<div class="container">
-  <div class="header">
-    <h1></h1>
-    <div class="add-row">
+<div class="grid">
+  <div class="section">
+    <div id="chatArea" class="chat-area" aria-live="polite"></div>
+
+    <!-- сюда переносим поле ввода -->
+    <div class="add-row fixed-input">
       <input id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." />
-      <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" value="50" />
+      <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На сколько % веришь?" />
       <button id="addBtn" class="icon-btn">Добавить</button>
     </div>
-  </div>
 
-  <div class="grid">
-    <div class="section">
-      <div id="chatArea" class="chat-area" aria-live="polite"></div>
-      <div class="note">найди в этой мысли искажения ↓</div>
-    </div>
-    <aside class="side-section">
-      <h3>Шпаргалка — искажения</h3>
-      <div id="cheatList"></div>
-      <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
-    </aside>
   </div>
+  <aside class="side-section">
+    <h3>Шпаргалка — искажения</h3>
+    <div id="cheatList"></div>
+    <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
+  </aside>
 </div>
+
 
 <script>
 /* ====== State ====== */
