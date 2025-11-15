@@ -188,11 +188,6 @@ document.body.addEventListener('touchend', e => {
   if(dx > SWIPE_THRESHOLD) sideDrawer.classList.add('open');    // свайп вправо — открыть
   if(dx < -SWIPE_THRESHOLD) sideDrawer.classList.remove('open'); // свайп влево — закрыть
   touchStartX = 0; touchEndX = 0;
-  const speed = Math.abs(dx) / dt; // px/ms
-if(dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) {
-    sideDrawer.classList.add('open');
-}
-
 });
 
   
