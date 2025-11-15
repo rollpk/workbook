@@ -42,7 +42,7 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 </head>
 <body>
 
-<button class="icon-btn menu-btn" id="menuBtn">☰ Чаты</button>
+<button class="icon-btn menu-btn" id="menuBtn">☰</button>
 
 <div class="side-drawer" id="sideDrawer">
   <h3>Чаты</h3>
@@ -168,6 +168,28 @@ function editRational(thIdx,rIdx){ const chat=getActiveChat(); const r=chat.thou
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
+
+/* ====== Drawer swipe ====== */
+let touchStartX = 0;
+let touchEndX = 0;
+const drawerWidth = 200;
+
+// Свайп с левого края, чтобы открыть
+document.body.addEventListener('touchstart', e => {
+  if(e.touches[0].clientX < 30 || sideDrawer.classList.contains('open')) {
+    touchStartX = e.touches[0].clientX;
+  }
+});
+document.body.addEventListener('touchmove', e => {
+  touchEndX = e.touches[0].clientX;
+});
+document.body.addEventListener('touchend', e => {
+  const dx = touchEndX - touchStartX;
+  if(dx > 50) sideDrawer.classList.add('open');      // свайп вправо — открыть
+  if(dx < -50) sideDrawer.classList.remove('open');   // свайп влево — закрыть
+  touchStartX = 0; touchEndX = 0;
+});
+
 </script>
 </body>
 </html>
