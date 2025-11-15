@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Дневник эмоций и мыслей — рабочая версия</title>
+<title>Дневник эмоций с выезжающим меню</title>
 <style>
 :root{
   --bg:#1a1a2e;
@@ -13,460 +13,161 @@
   --rat:#3b3d42;
   --text:#e6e6e6;
   --accent:#4A90E2;
-  --shadow: 0 8px 28px rgba(0,0,0,0.45);
 }
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  padding:10px; /* от краев окна */
-}
-
-.container{
-  width:100%;
-  max-width:1200px; /* удобно на ПК, чтобы не растягивать слишком */
-  margin:0 auto; /* центрируем на больших экранах */
-  background:transparent; /* без рамки */
-  border-radius:0;
-  padding:0; /* все внутренние отступы будут внутри блоков */
-  box-shadow:none;
-}
-
-/* grid уже отвечает за колонки */
-.grid{
-  display:grid;
-  grid-template-columns: 1fr 320px; /* мысли + шпаргалка */
-  gap:20px;
-}
-
-@media(max-width:1000px){
-  .grid{
-    grid-template-columns: 1fr; /* на мобильных одна колонка */
-  }
-}
-
-/* чуть ближе к краям */
-.chat-area, .side-section{
-  padding:10px;
-  border-radius:8px;
-}
-
-
-
-
-
-/* input controls */
-.input-text{
-  padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
-  background:rgba(255,255,255,0.02); color:var(--text); min-width:220px;
-}
-.input-num{
-  width:72px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
-  background:rgba(255,255,255,0.02); color:var(--text); text-align:center;
-}
-
-/* layout */
-.grid{ display:grid; grid-template-columns: 1fr 320px; gap:20px; }
-@media(max-width:1000px){ .grid{ grid-template-columns: 1fr; } }
-
-/* left column - thoughts */
-.section{ background:transparent; padding:0; }
-
-/* chat area */
-.chat-area{ background:rgba(0,0,0,0.04); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; }
-
-/* chat bubble base */
-.chat-message {
-  display:block;
-  max-width:85%;
-  padding:10px 14px;
-  border-radius:14px;
-  word-break:break-word;
-  line-height:1.35;
-  box-shadow:0 4px 10px rgba(0,0,0,0.18);
-}
-
-/* negative = outgoing (right) */
+body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
+.container{ max-width:1200px; margin:0 auto; padding:10px; }
+.header{ display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+.add-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.input-text{ padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); min-width:220px; }
+.input-num{ width:72px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); text-align:center; }
+.grid{ display:grid; grid-template-columns:1fr 320px; gap:20px; transition: margin-left 0.3s; }
+.chat-area{ background:rgba(0,0,0,0.04); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; max-height:70vh; overflow-y:auto; }
+.chat-message{ display:block; max-width:85%; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; }
 .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
-
-/* rational = incoming (left) */
 .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
-
-/* meta row (percent + small controls) */
 .meta-row{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:6px; color:var(--muted); font-size:12px; }
 .message-controls{ display:flex; gap:6px; align-items:center; }
-
-/* small action button */
-.icon-btn{
-  background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--text);
-  padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px;
-}
+.icon-btn{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; }
 .icon-btn.ghost{ opacity:0.9; }
-
-/* right column - cheats */
-.side-section{ background:rgba(0,0,0,0.03); padding:14px; border-radius:12px; height:100%; }
-.side-section h3{ margin:0 0 10px 0; font-size:16px; color:var(--text); }
+.side-drawer{ position:fixed; top:0; left:-220px; width:200px; height:100%; background:var(--card); padding:10px; box-shadow:2px 0 10px rgba(0,0,0,0.5); transition:left 0.3s; z-index:1000; overflow-y:auto; }
+.side-drawer.open{ left:0; }
+.chat-item{ padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; color:var(--text); margin-bottom:6px; }
+.chat-item.active{ background:var(--accent); color:#fff; }
 .cheat-item{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:8px; cursor:pointer; color:var(--text); }
 .cheat-item:hover{ transform:translateY(-2px); background:rgba(255,255,255,0.03); }
-
-/* footer note */
 .note{ color:var(--muted); font-size:13px; margin-top:8px; }
-
-/* responsive: make bubbles adapt to width */
-@media (max-width:600px){
-  .chat-message{ max-width:92%; padding:10px; font-size:15px; }
-  .header{ flex-direction:column; align-items:flex-start; gap:10px; }
-  .header .add-row{ width:100%; }
-  .input-text{ width:100%; min-width:0; }
-}
-
-/* small helpers */
-.hidden{ display:none; }
-.small{ font-size:13px; color:var(--muted); }
-  
-  
-  
-  body { overflow-x:hidden; }
-
-.side-drawer {
-  position:fixed;
-  top:0;
-  left:-250px; /* скрыта за экраном */
-  width:250px;
-  height:100%;
-  background:var(--card);
-  padding:20px;
-  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
-  transition: transform 0.3s ease;
-  z-index:1000;
-}
-
-.side-drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background: var(--card);
-  padding: 20px;
-  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-}
-
-.side-drawer.open { transform: translateX(0); }
-
-.main-content { transition: transform 0.3s ease; }
-.main-content.shifted { transform: translateX(250px); }
-
-
-/* чат элементы */
-.chat-item {
-  padding:10px;
-  margin-bottom:8px;
-  border-radius:8px;
-  background:rgba(255,255,255,0.02);
-  cursor:pointer;
-}
-.chat-item:hover { background:rgba(255,255,255,0.04); }
-
+.menu-btn{ position:fixed; top:10px; left:10px; z-index:1100; }
+@media(max-width:800px){ .grid{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
-  
-<div class="main-content" id="mainContent">
-  <div class="container">
+
+<button class="icon-btn menu-btn" id="menuBtn">☰ Чаты</button>
+
+<div class="side-drawer" id="sideDrawer">
+  <h3>Чаты</h3>
+  <div id="chatList"></div>
+  <button class="icon-btn" id="newChatBtn" style="margin-top:10px;">+ Новый чат</button>
+</div>
+
+<div class="container">
+  <div class="header">
     <h1>Негативные мысли</h1>
     <div class="add-row">
       <input id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." />
       <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" value="50" />
       <button id="addBtn" class="icon-btn">Добавить</button>
     </div>
+  </div>
 
-    <div class="grid">
-      <div class="section">
-        <div id="chatArea" class="chat-area" aria-live="polite">
-          <!-- bubbles will appear here -->
-        </div>
-        <div class="note">Порядок: мысль → искажения → объяснение → рациональные ответы. Нажми на мысль, чтобы редактировать.</div>
-      </div>
-
-      <aside class="side-section">
-        <h3>Шпаргалка — искажения</h3>
-        <div id="cheatList"></div>
-        <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
-      </aside>
+  <div class="grid">
+    <div class="section">
+      <div id="chatArea" class="chat-area" aria-live="polite"></div>
+      <div class="note">Порядок: мысль → искажения → рациональные ответы. Нажми на мысль, чтобы редактировать.</div>
     </div>
+    <aside class="side-section">
+      <h3>Шпаргалка — искажения</h3>
+      <div id="cheatList"></div>
+      <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
+    </aside>
   </div>
 </div>
 
-  <button onclick="toggleDrawer()" class="icon-btn" style="position:fixed; top:10px; left:10px; z-index:1100;">☰</button>
-
-  
-  <div class="side-drawer" id="sideDrawer">
-  <h3>Выбрать чат</h3>
-  <div class="chat-item">Чат 1</div>
-  <div class="chat-item">Чат 2</div>
-  <div class="chat-item">Чат 3</div>
-</div>
-
-  
 <script>
-  
-  const sideDrawer = document.getElementById("sideDrawer");
-const mainContent = document.getElementById("mainContent");
+/* ====== State ====== */
+const STORAGE_KEY="diary_chat_v3";
+const CHEATS=["Катастрофизация","Чтение мыслей","Чёрно-белое мышление","Эмоциональное обоснование","Долженствование","Обесценивание положительного","Генерализация","Персонализация","Фильтрация отрицательного","Завышенные стандарты"];
+let state=JSON.parse(localStorage.getItem(STORAGE_KEY))||{ chats:[{id:"chat1",name:"Чат 1", thoughts:[]}], activeChatId:"chat1" };
 
-function toggleDrawer() {
-  sideDrawer.classList.toggle("open");
-  mainContent.classList.toggle("shifted");
+/* ====== UI elements ====== */
+const chatArea=document.getElementById("chatArea");
+const addBtn=document.getElementById("addBtn");
+const newText=document.getElementById("newThoughtText");
+const newPct=document.getElementById("newThoughtPct");
+const cheatList=document.getElementById("cheatList");
+const chatList=document.getElementById("chatList");
+const newChatBtn=document.getElementById("newChatBtn");
+const sideDrawer=document.getElementById("sideDrawer");
+const menuBtn=document.getElementById("menuBtn");
+
+function save(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+function getActiveChat(){ return state.chats.find(c=>c.id===state.activeChatId); }
+
+/* ====== Drawer toggle ====== */
+menuBtn.onclick=()=>{ sideDrawer.classList.toggle("open"); }
+
+/* ====== Render chats ====== */
+function renderChats(){
+  chatList.innerHTML="";
+  state.chats.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="chat-item"+(c.id===state.activeChatId?" active":"");
+    div.textContent=c.name;
+    div.onclick=()=>{ state.activeChatId=c.id; save(); renderChats(); render(); sideDrawer.classList.remove("open"); };
+    chatList.appendChild(div);
+  });
 }
-
-  
-/* ====== Простая рабочая логика ====== */
-const STORAGE_KEY = "diary_chat_v1";
-
-/* стартовые шпаргалки */
-const CHEATS = [
-  "Катастрофизация",
-  "Чтение мыслей",
-  "Чёрно-белое мышление",
-  "Эмоциональное обоснование",
-  "Долженствование",
-  "Обесценивание положительного",
-  "Генерализация",
-  "Персонализация",
-  "Фильтрация отрицательного",
-  "Завышенные стандарты"
-];
-
-let state = load() || {
-  chats: [
-    { id: "chat1", name: "Чат 1", thoughts: [] }
-  ],
-  activeChatId: "chat1"
+newChatBtn.onclick=()=>{
+  const name=prompt("Название нового чата:"); if(!name) return;
+  const id=Date.now().toString(36);
+  state.chats.push({id,name, thoughts:[]}); state.activeChatId=id; save(); renderChats(); render();
 };
-  
-function getActiveChat() {
-  return state.chats.find(c => c.id === state.activeChatId);
-}
-
-
-function renderChats() {
-  sideDrawer.innerHTML = '<h3>Выбрать чат</h3>';
-  state.chats.forEach(chat => {
-    const div = document.createElement("div");
-    div.className = "chat-item";
-    div.textContent = chat.name;
-    div.addEventListener("click", () => { 
-      state.activeChatId = chat.id; 
-      save(); render(); renderChats();
-    });
-    sideDrawer.appendChild(div);
-  });
-
-  const addBtn = document.createElement("button");
-  addBtn.className = "icon-btn";
-  addBtn.textContent = "+";
-  addBtn.style.marginTop = "10px";
-  addBtn.addEventListener("click", () => {
-    const name = prompt("Название нового чата:");
-    if(!name) return;
-    const id = Date.now().toString(36);
-    state.chats.push({ id, name, thoughts: [] });
-    state.activeChatId = id;
-    save(); render(); renderChats();
-  });
-  sideDrawer.appendChild(addBtn);
-}
-
-
-  
-  
-
-
-
-/* ====== Сохранялка/загрузилка ====== */
-function save(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.warn("save err", e); }
-}
-function load(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){ return null; }
-}
-
-/* ====== UI элементы ====== */
-const chatArea = document.getElementById("chatArea");
-const addBtn = document.getElementById("addBtn");
-const newText = document.getElementById("newThoughtText");
-const newPct = document.getElementById("newThoughtPct");
-const cheatList = document.getElementById("cheatList");
 
 /* ====== Render cheats ====== */
 function renderCheats(){
-  cheatList.innerHTML = "";
+  cheatList.innerHTML="";
   CHEATS.forEach(c=>{
-    const d = document.createElement("div");
-    d.className = "cheat-item";
-    d.textContent = c;
-    d.addEventListener("click", ()=> {
-     const chat = getActiveChat();
-if(!chat.thoughts.length){ alert("Сначала добавь мысль."); return; }
-const last = chat.thoughts[chat.thoughts.length-1];
-      last.distortions = last.distortions || [];
-      last.distortions.push(c);
-      save(); render();
-    });
+    const d=document.createElement("div"); d.className="cheat-item"; d.textContent=c;
+    d.onclick=()=>{
+      const chat=getActiveChat();
+      if(!chat.thoughts.length){ alert("Сначала добавь мысль."); return; }
+      const last=chat.thoughts[chat.thoughts.length-1];
+      last.distortions=last.distortions||[]; last.distortions.push(c); save(); render();
+    };
     cheatList.appendChild(d);
   });
 }
 
-  function getActiveChat() {
-  return state.chats.find(c => c.id === state.activeChatId);
-}
-  
-/* ====== Render chat ====== */
+/* ====== Render chat messages ====== */
 function render(){
-  chatArea.innerHTML = "";
-  if(!state.thoughts || state.thoughts.length === 0){
-    const p = document.createElement("div"); p.className="small"; p.textContent="Пока нет мыслей. Добавь первую справа."; chatArea.appendChild(p); return;
-  }
+  const chat=getActiveChat();
+  chatArea.innerHTML="";
+  if(!chat.thoughts.length){ chatArea.innerHTML='<div class="small">Пока нет мыслей. Добавь первую справа.</div>'; return; }
 
-  state.thoughts.forEach((t, idx) => {
-    // wrapper for group
-    const group = document.createElement("div");
-    group.style.display = "flex";
-    group.style.flexDirection = "column";
-    group.style.gap = "6px";
+  chat.thoughts.forEach((t, idx)=>{
+    const group=document.createElement("div"); group.style.display="flex"; group.style.flexDirection="column"; group.style.gap="6px";
 
-    // negative bubble (editable on click)
-    const neg = document.createElement("div");
-    neg.className = "chat-message neg";
-    neg.textContent = t.text || "(пустая мысль)";
-    neg.title = "Клик — редактировать / удалить";
-    neg.addEventListener("click", ()=> editThought(idx));
+    const neg=document.createElement("div"); neg.className="chat-message neg"; neg.textContent=t.text||"(пустая мысль)"; neg.title="Клик — редактировать / удалить"; neg.onclick=()=>editThought(idx);
+    const meta=document.createElement("div"); meta.className="meta-row";
+    const pct=document.createElement("div"); pct.textContent=(t.beliefPercent||0)+"%"; meta.appendChild(pct);
 
-    // percent shown below inside meta row
-    const meta = document.createElement("div");
-    meta.className = "meta-row";
-    const pct = document.createElement("div");
-    pct.textContent = (t.beliefPercent||0) + "%";
-    meta.appendChild(pct);
+    const controls=document.createElement("div"); controls.className="message-controls";
+    const addRat=document.createElement("button"); addRat.className="icon-btn ghost"; addRat.textContent="+ Рационал"; addRat.onclick=e=>{ e.stopPropagation(); addRational(idx); };
+    const del=document.createElement("button"); del.className="icon-btn"; del.textContent="Удалить"; del.onclick=e=>{ e.stopPropagation(); if(confirm("Удалить мысль?")){ chat.thoughts.splice(idx,1); save(); render(); } };
+    controls.appendChild(addRat); controls.appendChild(del); meta.appendChild(controls);
 
-    // controls: add rational, delete
-    const controls = document.createElement("div");
-    controls.className = "message-controls";
-    const addRat = document.createElement("button");
-    addRat.className = "icon-btn ghost";
-    addRat.textContent = "+ Рационал";
-    addRat.title = "Добавить рациональную мысль";
-    addRat.addEventListener("click", (e)=>{ e.stopPropagation(); addRational(idx); });
+    group.appendChild(neg); group.appendChild(meta);
 
-    const del = document.createElement("button");
-    del.className = "icon-btn";
-    del.textContent = "Удалить";
-    del.title = "Удалить мысль";
-    del.addEventListener("click", (e)=>{ e.stopPropagation(); if(confirm('Удалить мысль?')){ state.thoughts.splice(idx,1); save(); render(); } });
-
-    controls.appendChild(addRat);
-    controls.appendChild(del);
-    meta.appendChild(controls);
-
-    group.appendChild(neg);
-    group.appendChild(meta);
-
-    // distortions line (if any)
-    if(t.distortions && t.distortions.length){
-      const dline = document.createElement("div");
-      dline.className = "small";
-      dline.style.marginBottom="4px";
-      dline.textContent = "Искажения: " + t.distortions.join(", ");
-      group.appendChild(dline);
-    }
-
-    // rationals (left, editable)
-    if(t.rationals && t.rationals.length){
-      t.rationals.forEach((r, ri) => {
-        const rat = document.createElement("div");
-        rat.className = "chat-message rat";
-        rat.textContent = r.text || "(пусто)";
-        rat.title = "Клик — редактировать рационал";
-        rat.addEventListener("click", ()=> editRational(idx, ri));
-        const rmeta = document.createElement("div");
-        rmeta.className = "meta-row";
-        rmeta.style.justifyContent = "flex-start";
-        const rpct = document.createElement("div");
-        rpct.textContent = (r.percent||0) + "%";
-        rmeta.appendChild(rpct);
-        group.appendChild(rat);
-        group.appendChild(rmeta);
-      });
-    }
+    if(t.distortions&&t.distortions.length){ const dline=document.createElement("div"); dline.className="small"; dline.style.marginBottom="4px"; dline.textContent="Искажения: "+t.distortions.join(", "); group.appendChild(dline); }
+    if(t.rationals&&t.rationals.length){ t.rationals.forEach((r,ri)=>{ const rat=document.createElement("div"); rat.className="chat-message rat"; rat.textContent=r.text||"(пусто)"; rat.title="Клик — редактировать рационал"; rat.onclick=()=>editRational(idx,ri); const rmeta=document.createElement("div"); rmeta.className="meta-row"; rmeta.style.justifyContent="flex-start"; const rpct=document.createElement("div"); rpct.textContent=(r.percent||0)+"%"; rmeta.appendChild(rpct); group.appendChild(rat); group.appendChild(rmeta); }); }
 
     chatArea.appendChild(group);
   });
 }
 
 /* ====== Actions ====== */
-addBtn.addEventListener("click", ()=>{
-  const text = newText.value.trim();
-  if(!text){ alert("Напиши мысль в поле слева."); newText.focus(); return; }
-  const pct = Math.max(0, Math.min(100, parseInt(newPct.value||0,10)));
-  const chat = getActiveChat();
-chat.thoughts.push({ id: Date.now().toString(36), text, beliefPercent: pct, distortions: [], rationals: [] });
-({ id: Date.now().toString(36), text, beliefPercent: pct, distortions: [], rationals: [] });
-  newText.value = ""; newPct.value = 50;
-  save(); render();
-});
-
-
-/* add rational */
-function addRational(thIdx){
-  const text = prompt("Текст рациональной мысли (коротко):");
-  if(text === null) return;
-  const percent = parseInt(prompt("Во сколько процентов веришь в эту рациональную мысль? (0-100)","50")||"50",10);
-  const chat = getActiveChat();
-chat.thoughts[thIdx].rationals = chat.thoughts[thIdx].rationals || [];
-chat.thoughts[thIdx].rationals.push({ id: Date.now().toString(36), text: text.trim(), percent: Math.max(0, Math.min(100, percent||0)) });
-  save(); render();
-}
-
-/* edit negative thought */
-function editThought(idx){
-  const chat = getActiveChat();
-  const t = chat.thoughts[idx]; // <- здесь!
-  const newText = prompt("Изменить негативную мысль:", t.text||"");
-  if(newText === null) return;
-  const newPct = prompt("Во сколько процентов веришь в эту мысль? (0-100)", String(t.beliefPercent||50));
-  if(newPct === null) return;
-  t.text = newText.trim();
-  t.beliefPercent = Math.max(0, Math.min(100, parseInt(newPct||0,10)));
-  save(); render();
-}
-
-
-/* edit rational */
-function editRational(thIdx, rIdx){
-  const chat = getActiveChat();
-  const r = chat.thoughts[thIdx].rationals[rIdx]; // <- важно!
-  const txt = prompt("Изменить рационал:", r.text||"");
-  if(txt === null) return;
-  const pct = prompt("Во сколько процентов веришь в эту рациональную мысль? (0-100)", String(r.percent||50));
-  if(pct === null) return;
-  r.text = txt.trim();
-  r.percent = Math.max(0, Math.min(100, parseInt(pct||0,10)));
-  save(); render();
-}
-
+addBtn.onclick=()=>{
+  const text=newText.value.trim(); if(!text){ alert("Напиши мысль"); return; }
+  const pct=Math.max(0,Math.min(100,parseInt(newPct.value||0,10)));
+  getActiveChat().thoughts.push({id:Date.now().toString(36), text, beliefPercent:pct, distortions:[], rationals:[]});
+  newText.value=""; newPct.value=50; save(); render();
+};
+function addRational(thIdx){ const text=prompt("Текст рациональной мысли:"); if(text===null)return; const percent=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); const chat=getActiveChat(); chat.thoughts[thIdx].rationals=chat.thoughts[thIdx].rationals||[]; chat.thoughts[thIdx].rationals.push({id:Date.now().toString(36), text:text.trim(), percent}); save(); render(); }
+function editThought(idx){ const chat=getActiveChat(); const t=chat.thoughts[idx]; const newText=prompt("Изменить мысль:", t.text||""); if(newText===null)return; const newPct=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); t.text=newText.trim(); t.beliefPercent=newPct; save(); render(); }
+function editRational(thIdx,rIdx){ const chat=getActiveChat(); const r=chat.thoughts[thIdx].rationals[rIdx]; const txt=prompt("Изменить рационал:", r.text||""); if(txt===null)return; const pct=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); r.text=txt.trim(); r.percent=pct; save(); render(); }
 
 /* ====== Init ====== */
-renderCheats();
-render();
-  
-  
+renderChats(); renderCheats(); render();
 </script>
 </body>
 </html>
