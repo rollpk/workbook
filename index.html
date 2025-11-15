@@ -66,11 +66,11 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   position: relative;
 }
 
+/* CSS исправленный */
 .chat-area {
-  flex: 1;
+  display: flex;
+  flex-direction: column-reverse; /* новые сообщения снизу */
   overflow-y: auto;
-  margin-bottom: 10px; /* чтобы поле ввода не перекрывало сообщения */
-  padding-top: 20px;
 }
 
 .fixed-input {
@@ -87,19 +87,15 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   z-index: 2000;
   max-width: 95%;
-  min-width: 320px;  /* для ПК */
+  min-width: 320px;
 }
 
+
 .input-text {
-  flex: 1 1 auto;
-  min-width: 200px;
-  resize: none;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.04);
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
+  max-height: 150px; /* например */
+  overflow-y: auto;
 }
+
 
 .input-num {
   width: 70px;
@@ -119,9 +115,11 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 }
 
 .chat-area {
+  display: flex;
+  justify-content: flex-end; /* чтобы новые сообщения снизу */
   overflow-y: auto;
-  padding-bottom: 80px; /* примерно высота панели + отступ */
 }
+
 
 .input-num::placeholder {
   font-size: 12px;
@@ -311,10 +309,11 @@ if(!last.distortions.includes(c)) last.distortions.push(c);
   });
 }
   
-  function scrollToBottom() {
-    const chatArea = document.getElementById("chatArea");
-    chatArea.scrollTop = chatArea.scrollHeight;
+ function scrollToBottom() {
+  chatArea.scrollTop = 0; // для column-reverse
+   setTimeout(scrollToBottom,50);
 }
+
 
 
 /* ====== Render chat messages ====== */
@@ -356,60 +355,30 @@ controls.appendChild(distortBtn);
 }
 
 /* ====== Actions ====== */
-addBtn.onclick = () => {
-  const text = newText.value.trim();
-  if(!text){ alert("Напиши мысль"); newText.focus(); return; }
-
-  let pct = parseInt(newPct.value, 10);
-  if(isNaN(pct)) pct = "";
-  pct = Math.max(0, Math.min(100, pct));
-
-  const chat = getActiveChat();
-
-  if(editingRational) {
-    // Добавляем рационал
-    const {thoughtIdx, rationalIdx} = editingRational;
-    chat.thoughts[thoughtIdx].rationals[rationalIdx].text = text;
-    chat.thoughts[thoughtIdx].rationals[rationalIdx].percent = pct;
-    editingRational = null; 
-    
-    // возвращаем поле к обычным мыслям
-    newText.placeholder = "Опиши автоматическую негативную мысль...";
-if(/Android|iPhone/i.test(navigator.userAgent)){
-    newText.blur();
-    newPct.blur();
-}
-
-  } else {
-    // Обычная мысль
-    chat.thoughts.push({
-      id: Date.now().toString(36),
-      text,
-      beliefPercent: pct,
-      distortions: [],
-      rationals: []
-    });
-  }
-
-  newText.value = "";
-  newText.focus()
+newText.value = "";
   newPct.value = "";
   save();
   render();
-  if(/Android|iPhone/i.test(navigator.userAgent)){
-    document.activeElement.blur();
-}
+  scrollToBottom();
 
   newText.blur();
-newPct.blur();
+  newPct.blur();
+  document.querySelector(".fixed-input").style.bottom = "12px";
+};
 
-
+// авто-прокрутка при render
+const origRender = render;
+render = function(...args){
+  origRender.apply(this, args);
+  setTimeout(scrollToBottom, 50);
+};
 
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
 
- setTimeout(() => { chatArea.scrollTop = 0; }, 50);
+ setTimeout(() => { chatArea.scrollTop = 0;
+                   setTimeout(scrollToBottom,50);
 // чат с column-reverse будет прокручен правильно
 
 };
@@ -559,11 +528,6 @@ adjustChatPadding();
 window.addEventListener("resize", adjustChatPadding);
 
 
-const origRender = render;
-render = function(...args){
-  origRender.apply(this, args);
-  setTimeout(adjustChatPadding, 50);
-};
 
  function openDistortionPanel(thoughtIdx){
     const panel = document.getElementById("distortionPanel");
@@ -627,14 +591,11 @@ if(/Android|iPhone/i.test(navigator.userAgent)){
     }, 100); // немного больше задержка
 }
 
-
-
-
-menuBtn.onclick = () => {
+menuBtn.onclick = (e) => {
+  e.stopPropagation(); // чтобы свайпы не вмешивались
   sideDrawer.classList.toggle('open');
   document.querySelector('.grid').classList.toggle('shifted');
 };
-
 
 </script>
 </body>
