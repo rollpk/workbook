@@ -80,17 +80,62 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 }
 
 .fixed-input {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  position: sticky;   /* чтобы оставалось внизу при прокрутке */
-  bottom: 0;
   background: var(--card);
-  padding: 10px;
-  border-radius: 12px 12px 0 0;
+  padding: 12px 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  z-index: 2000;
+  max-width: 95%;
+  min-width: 320px;  /* для ПК */
 }
 
-  
+.input-text {
+  flex: 1 1 auto;
+  min-width: 200px;
+  resize: none;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+}
+
+.input-num {
+  width: 70px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.02);
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+
+.input-num::placeholder {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chat-area {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-bottom: 80px; /* примерно высота панели + отступ */
+}
+
+.input-num::placeholder {
+  font-size: 12px;
+  color: var(--muted);
+}
+let editingRational = null; // null = ввод мысли, иначе {thoughtIdx, rationalIdx}
+ 
 </style>
 </head>
 <body>
@@ -107,12 +152,6 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   <div class="section">
     <div id="chatArea" class="chat-area" aria-live="polite"></div>
 
-    <!-- сюда переносим поле ввода -->
-    <div class="add-row fixed-input">
-      <input id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." />
-      <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На сколько % веришь?" />
-      <button id="addBtn" class="icon-btn">Добавить</button>
-    </div>
 
   </div>
   <aside class="side-section">
@@ -122,6 +161,15 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   </aside>
 </div>
 
+
+<!-- Фиксированная панель ввода -->
+<div class="fixed-input">
+  <textarea id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." rows="1"></textarea>
+  <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На сколько % веришь?" />
+  <button id="addBtn" class="icon-btn">Добавить</button>
+</div>
+
+  
 
 <script>
 /* ====== State ====== */
@@ -210,25 +258,35 @@ addBtn.onclick = () => {
   const text = newText.value.trim();
   if(!text){ alert("Напиши мысль"); newText.focus(); return; }
 
-  // parseInt + fallback на 50%
   let pct = parseInt(newPct.value, 10);
   if(isNaN(pct)) pct = 50;
   pct = Math.max(0, Math.min(100, pct));
 
-  getActiveChat().thoughts.push({
-    id: Date.now().toString(36),
-    text,
-    beliefPercent: pct,
-    distortions: [],
-    rationals: []
-  });
+  const chat = getActiveChat();
+
+  if(editingRational) {
+    // Добавляем рационал
+    const {thoughtIdx, rationalIdx} = editingRational;
+    chat.thoughts[thoughtIdx].rationals[rationalIdx].text = text;
+    chat.thoughts[thoughtIdx].rationals[rationalIdx].percent = pct;
+    editingRational = null; // возвращаем поле к обычным мыслям
+    newText.placeholder = "Опиши автоматическую негативную мысль...";
+  } else {
+    // Обычная мысль
+    chat.thoughts.push({
+      id: Date.now().toString(36),
+      text,
+      beliefPercent: pct,
+      distortions: [],
+      rationals: []
+    });
+  }
 
   newText.value = "";
-  newPct.value = 50;  // сбрасываем ползунок на 50%
+  newPct.value = 50;
   save();
   render();
 
-  // скролл вниз
   setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
 };
 
@@ -290,24 +348,43 @@ document.body.addEventListener('touchend', e => {
 
   tracking = false;
 });
+  
+  function addRational(idx) {
+  const chat = getActiveChat();
+  const thought = chat.thoughts[idx];
+  thought.rationals = thought.rationals || [];
+  const rIdx = thought.rationals.length;
+  thought.rationals.push({ text: "", percent: 0 });
+  save();
+  render();
+
+  // переключаем поле ввода на рационал
+  editingRational = { thoughtIdx: idx, rationalIdx: rIdx };
+  newText.value = ""; 
+  newText.placeholder = "Впишите новую рациональную мысль...";
+  newPct.value = 50;
+  newText.focus();
+}
+
+
 
   
   // поле мыслей
 newText.addEventListener('keydown', e => {
   if(e.key === 'Enter'){
-    e.preventDefault(); // чтобы не создавалась новая строка
-    newPct.focus();      // перенос фокуса на ползунок
+    e.preventDefault();
+    newPct.focus();
   }
 });
 
-// поле процента веры
 newPct.addEventListener('keydown', e => {
   if(e.key === 'Enter'){
     e.preventDefault();
-    addBtn.click();      // "нажимаем" кнопку добавить
-    newText.focus();     // фокус обратно на поле мыслей
+    addBtn.click();
+    newText.focus();
   }
 });
+
 
  function editThought(idx){
   const chat = getActiveChat();
@@ -325,6 +402,21 @@ newPct.addEventListener('keydown', e => {
   render();
 }
 
+newText.addEventListener("input", () => {
+  newText.style.height = "auto";
+  newText.style.height = newText.scrollHeight + "px";
+});
+
+newChatBtn.onclick = () => {
+  const count = state.chats.length + 1;
+  const name = "Чат " + count;
+  const id = Date.now().toString(36);
+  state.chats.push({id, name, thoughts: []});
+  state.activeChatId = id;
+  save();
+  renderChats();
+  render();
+};
 
 </script>
 </body>
