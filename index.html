@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Дневник эмоций с выезжающим меню</title>
@@ -38,6 +41,8 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 .note{ color:var(--muted); font-size:13px; margin-top:8px; }
 .menu-btn{ position:fixed; top:10px; left:10px; z-index:1100; }
 @media(max-width:800px){ .grid{ grid-template-columns:1fr; } }
+  
+  
 </style>
 </head>
 <body>
@@ -156,15 +161,32 @@ function render(){
 }
 
 /* ====== Actions ====== */
-addBtn.onclick=()=>{
-  const text=newText.value.trim(); if(!text){ alert("Напиши мысль"); return; }
-  const pct=Math.max(0,Math.min(100,parseInt(newPct.value||0,10)));
-  getActiveChat().thoughts.push({id:Date.now().toString(36), text, beliefPercent:pct, distortions:[], rationals:[]});
-  newText.value=""; newPct.value=50; save(); render();
+addBtn.onclick = () => {
+  const text = newText.value.trim();
+  if(!text){ alert("Напиши мысль"); newText.focus(); return; }
+
+  // parseInt + fallback на 50%
+  let pct = parseInt(newPct.value, 10);
+  if(isNaN(pct)) pct = 50;
+  pct = Math.max(0, Math.min(100, pct));
+
+  getActiveChat().thoughts.push({
+    id: Date.now().toString(36),
+    text,
+    beliefPercent: pct,
+    distortions: [],
+    rationals: []
+  });
+
+  newText.value = "";
+  newPct.value = 50;  // сбрасываем ползунок на 50%
+  save();
+  render();
+
+  // скролл вниз
+  setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
 };
-function addRational(thIdx){ const text=prompt("Текст рациональной мысли:"); if(text===null)return; const percent=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); const chat=getActiveChat(); chat.thoughts[thIdx].rationals=chat.thoughts[thIdx].rationals||[]; chat.thoughts[thIdx].rationals.push({id:Date.now().toString(36), text:text.trim(), percent}); save(); render(); }
-function editThought(idx){ const chat=getActiveChat(); const t=chat.thoughts[idx]; const newText=prompt("Изменить мысль:", t.text||""); if(newText===null)return; const newPct=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); t.text=newText.trim(); t.beliefPercent=newPct; save(); render(); }
-function editRational(thIdx,rIdx){ const chat=getActiveChat(); const r=chat.thoughts[thIdx].rationals[rIdx]; const txt=prompt("Изменить рационал:", r.text||""); if(txt===null)return; const pct=Math.max(0,Math.min(100,parseInt(prompt("Во сколько процентов веришь?","50")||"50",10))); r.text=txt.trim(); r.percent=pct; save(); render(); }
+
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
@@ -225,7 +247,39 @@ document.body.addEventListener('touchend', e => {
 });
 
   
-  
+  // поле мыслей
+newText.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    e.preventDefault(); // чтобы не создавалась новая строка
+    newPct.focus();      // перенос фокуса на ползунок
+  }
+});
+
+// поле процента веры
+newPct.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    addBtn.click();      // "нажимаем" кнопку добавить
+    newText.focus();     // фокус обратно на поле мыслей
+  }
+});
+
+  function editThought(idx){
+  const chat = getActiveChat();
+  const t = chat.thoughts[idx];
+  const newTextVal = prompt("Изменить мысль:", t.text || "");
+  if(newTextVal === null) return;
+
+  let newPctVal = parseInt(prompt("Во сколько процентов веришь? (0-100)", t.beliefPercent || 50),10);
+  if(isNaN(newPctVal)) newPctVal = 50;
+  newPctVal = Math.max(0, Math.min(100, newPctVal));
+
+  t.text = newTextVal.trim();
+  t.beliefPercent = newPctVal;
+  save();
+  render();
+}
+
 
 </script>
 </body>
