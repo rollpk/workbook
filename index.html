@@ -269,8 +269,8 @@ const chatArea=document.getElementById("chatArea");
 const addBtn=document.getElementById("addBtn");
 const newText=document.getElementById("newThoughtText");
 const newPct=document.getElementById("newThoughtPct");
-const cheatList=document.getElementById("cheatList");
-const chatList=document.getElementById("chatList");
+const cheatListEl = document.getElementById("cheatList"); // Добавили El
+const chatListEl = document.getElementById("chatList");   // Добавили El
 const newChatBtn=document.getElementById("newChatBtn");
 const sideDrawer=document.getElementById("sideDrawer");
 const menuBtn=document.getElementById("menuBtn");
@@ -284,7 +284,7 @@ function getActiveChat(){ return state.chats.find(c=>c.id===state.activeChatId);
 
 /* ====== Render cheats ====== */
 function renderCheats(){
-  cheatList.innerHTML="";
+  cheatListEl.innerHTML="";
   CHEATS.forEach(c=>{
     const d=document.createElement("div"); d.className="cheat-item"; d.textContent=c;
     d.onclick=()=>{
@@ -295,7 +295,7 @@ function renderCheats(){
 if(!last.distortions.includes(c)) last.distortions.push(c);
  save(); render();
     };
-    cheatList.appendChild(d);
+    cheatListEl.appendChild(d);
   });
 }
   
@@ -485,8 +485,9 @@ newChatBtn.onclick = () => {
 
 let editingRational = null; // null = ввод мысли, иначе {thoughtIdx, rationalIdx}
   
- const toggleCheatsBtn = document.getElementById("toggleCheats");
-const cheatDiv = document.getElementById("cheatList");
+ const cheatListEl = document.getElementById("cheatList");
+const chatListEl = document.getElementById("chatList");
+
 
 toggleCheatsBtn.onclick = () => {
   if(cheatDiv.classList.contains("open")){
@@ -600,6 +601,47 @@ menuBtn.onclick = e => {
 };
 
 
+/* Добавьте этот код в ваш <script> */
+
+// Функция для переключения класса "open" на боковой панели
+function toggleMenu() {
+    sideDrawer.classList.toggle("open");
+    // Если хотите, чтобы основной контент тоже сдвигался, раскомментируйте строку ниже
+    // document.querySelector('.grid').classList.toggle('shifted');
+}
+
+// Добавляем обработчик клика к кнопке меню
+menuBtn.addEventListener("click", toggleMenu);
+
+  // Функция обработки кнопки "➤"
+function addThought() {
+    const text = newText.value.trim();
+    let belief = parseInt(newPct.value, 10);
+
+    if (!text) return; // Не добавляем пустые мысли
+
+    if (isNaN(belief)) belief = 0;
+    belief = Math.max(0, Math.min(100, belief));
+
+    const chat = getActiveChat();
+    chat.thoughts.push({
+        text: text,
+        beliefPercent: belief,
+        distortions: [],
+        rationals: []
+    });
+
+    newText.value = "";
+    newPct.value = "";
+    newText.style.height = "auto"; // Сброс высоты текстового поля
+    save();
+    render(); // Перерисовываем чат, чтобы увидеть новое сообщение
+    newText.focus(); // Возвращаем фокус в поле ввода
+}
+
+// Привязываем функцию к кнопке "Добавить"
+addBtn.addEventListener('click', addThought);
+  
 </script>
 </body>
 </html>
