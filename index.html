@@ -169,6 +169,8 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   <button id="addBtn" class="icon-btn">Добавить</button>
 </div>
 
+<button id="toggleCheats" class="icon-btn" style="margin-bottom:8px;">Шпаргалки</button>
+<div id="cheatList" style="display:none;"></div>
   
 
 <script>
@@ -286,6 +288,9 @@ addBtn.onclick = () => {
   newPct.value = 50;
   save();
   render();
+  newText.blur();
+newPct.blur();
+
 
   setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
 };
@@ -418,6 +423,13 @@ newChatBtn.onclick = () => {
   render();
 };
 let editingRational = null; // null = ввод мысли, иначе {thoughtIdx, rationalIdx}
+  
+ const toggleCheatsBtn = document.getElementById("toggleCheats");
+toggleCheatsBtn.onclick = () => {
+    const cheatDiv = document.getElementById("cheatList");
+    cheatDiv.style.display = cheatDiv.style.display === "none" ? "block" : "none";
+}
+
 </script>
 </body>
 </html>
