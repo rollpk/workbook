@@ -142,6 +142,32 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 #cheatList.open {
   opacity: 1;
 }
+  
+#distortionPanel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60vh;
+  background: var(--card);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+  padding: 16px;
+  z-index: 5000;
+  transition: transform .35s ease, opacity .25s ease;
+
+  transform: translateY(100%); /* панель спрятана */
+  opacity: 0;
+}
+
+#distortionPanel.open {
+  transform: translateY(0); /* панель выезжает */
+  opacity: 1;
+}
+
+
+
 
 </style>
 </head>
@@ -178,6 +204,9 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   <button id="addBtn" class="icon-btn">Добавить</button>
 </div>
 
+<div id="distortionPanel">
+  <div id="distortionContent"></div>
+</div>
 
 
 <script>
@@ -249,7 +278,16 @@ function render(){
     const pct=document.createElement("div"); pct.textContent=(t.beliefPercent||0)+"%"; meta.appendChild(pct);
 
     const controls=document.createElement("div"); controls.className="message-controls";
-    const addRat=document.createElement("button"); addRat.className="icon-btn ghost"; addRat.textContent="+ Рационал"; addRat.onclick=e=>{ e.stopPropagation(); addRational(idx); };
+    const addRat=document.createElement("button"); addRat.className="icon-btn ghost"; addRat.textContent="+ Рационал";
+const distortBtn = document.createElement("button");
+distortBtn.className = "icon-btn ghost";
+distortBtn.textContent = "Искажения";
+distortBtn.onclick = (e) => {
+    e.stopPropagation();
+    openDistortionPanel(idx);
+};
+controls.appendChild(distortBtn);
+ addRat.onclick=e=>{ e.stopPropagation(); addRational(idx); };
     const del=document.createElement("button"); del.className="icon-btn"; del.textContent="Удалить"; del.onclick=e=>{ e.stopPropagation(); if(confirm("Удалить мысль?")){ chat.thoughts.splice(idx,1); save(); render(); } };
     controls.appendChild(addRat); controls.appendChild(del); meta.appendChild(controls);
 
@@ -280,6 +318,11 @@ addBtn.onclick = () => {
     chat.thoughts[thoughtIdx].rationals[rationalIdx].percent = pct;
     editingRational = null; // возвращаем поле к обычным мыслям
     newText.placeholder = "Опиши автоматическую негативную мысль...";
+if(/Android|iPhone/i.test(navigator.userAgent)){
+    newText.blur();
+    newPct.blur();
+}
+
   } else {
     // Обычная мысль
     chat.thoughts.push({
@@ -299,6 +342,9 @@ addBtn.onclick = () => {
 newPct.blur();
 chatArea.scrollTop = chatArea.scrollHeight;
 
+setTimeout(() => {
+    chatArea.scrollTop = chatArea.scrollHeight;
+}, 50);
 
 
   setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
@@ -307,6 +353,7 @@ chatArea.scrollTop = chatArea.scrollHeight;
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
+
 
 // кнопка меню
 menuBtn.onclick = () => {
@@ -406,7 +453,8 @@ newPct.addEventListener('keydown', e => {
   const newTextVal = prompt("Изменить мысль:", t.text || "");
   if(newTextVal === null) return;
 
-  let newPctVal = parseInt(prompt("Во сколько процентов веришь? (0-100)", t.beliefPercent || 50),10);
+  let newPctVal = parseInt(prompt("Во сколько процентов веришь? (0-100)", t.beliefPercent ?? ""),10);
+
   if(isNaN(newPctVal)) newPctVal = 50;
   newPctVal = Math.max(0, Math.min(100, newPctVal));
 
@@ -463,7 +511,40 @@ render = function(...args){
   setTimeout(adjustChatPadding, 50);
 };
 
-  
+ function openDistortionPanel(thoughtIdx){
+    const panel = document.getElementById("distortionPanel");
+    const content = document.getElementById("distortionContent");
+
+    content.innerHTML = "";
+
+    CHEATS.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "cheat-item";
+        item.textContent = c;
+        item.onclick = () => {
+            closeDistortionPanel();
+            const chat = getActiveChat();
+            const t = chat.thoughts[thoughtIdx];
+            t.distortions = t.distortions || [];
+            t.distortions.push(c);
+            save();
+            render();
+        };
+        content.appendChild(item);
+    });
+
+    panel.classList.add("open");
+}
+
+function closeDistortionPanel(){
+    document.getElementById("distortionPanel").classList.remove("open");
+}
+
+// закрытие свайпом вниз
+document.getElementById("distortionPanel").addEventListener("click", e=>{
+    if(e.target.id === "distortionPanel") closeDistortionPanel();
+});
+ 
 </script>
 </body>
 </html>
