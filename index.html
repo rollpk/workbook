@@ -126,44 +126,105 @@ body{
 /* small helpers */
 .hidden{ display:none; }
 .small{ font-size:13px; color:var(--muted); }
+  
+  
+  
+  body { overflow-x:hidden; }
+
+.side-drawer {
+  position:fixed;
+  top:0;
+  left:-250px; /* скрыта за экраном */
+  width:250px;
+  height:100%;
+  background:var(--card);
+  padding:20px;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease;
+  z-index:1000;
+}
+
+.side-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background: var(--card);
+  padding: 20px;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.side-drawer.open { transform: translateX(0); }
+
+.main-content { transition: transform 0.3s ease; }
+.main-content.shifted { transform: translateX(250px); }
+
+
+/* чат элементы */
+.chat-item {
+  padding:10px;
+  margin-bottom:8px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.02);
+  cursor:pointer;
+}
+.chat-item:hover { background:rgba(255,255,255,0.04); }
+
 </style>
 </head>
 <body>
   
-    
-  
-<div class="container">
-  <div class="header">
+<div class="main-content" id="mainContent">
+  <div class="container">
     <h1>Негативные мысли</h1>
     <div class="add-row">
       <input id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." />
       <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" value="50" />
       <button id="addBtn" class="icon-btn">Добавить</button>
     </div>
-  </div>
 
-  <div class="grid">
-    <div class="section">
-      <div id="chatArea" class="chat-area" aria-live="polite">
-        <!-- bubbles will appear here -->
+    <div class="grid">
+      <div class="section">
+        <div id="chatArea" class="chat-area" aria-live="polite">
+          <!-- bubbles will appear here -->
+        </div>
+        <div class="note">Порядок: мысль → искажения → объяснение → рациональные ответы. Нажми на мысль, чтобы редактировать.</div>
       </div>
 
-      <div class="note">Порядок: мысль → искажения → объяснение → рациональные ответы. Нажми на мысль, чтобы редактировать.</div>
+      <aside class="side-section">
+        <h3>Шпаргалка — искажения</h3>
+        <div id="cheatList"></div>
+        <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
+      </aside>
     </div>
-
-    <aside class="side-section">
-      <h3>Шпаргалка — искажения</h3>
-      <div id="cheatList"></div>
-      <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
-    </aside>
   </div>
 </div>
 
+  <button onclick="toggleDrawer()" class="icon-btn" style="position:fixed; top:10px; left:10px; z-index:1100;">☰</button>
+
   
+  <div class="side-drawer" id="sideDrawer">
+  <h3>Выбрать чат</h3>
+  <div class="chat-item">Чат 1</div>
+  <div class="chat-item">Чат 2</div>
+  <div class="chat-item">Чат 3</div>
+</div>
+
   
 <script>
   
-  
+  const sideDrawer = document.getElementById("sideDrawer");
+const mainContent = document.getElementById("mainContent");
+
+function toggleDrawer() {
+  sideDrawer.classList.toggle("open");
+  mainContent.classList.toggle("shifted");
+}
+
   
 /* ====== Простая рабочая логика ====== */
 const STORAGE_KEY = "diary_chat_v1";
@@ -182,7 +243,51 @@ const CHEATS = [
   "Завышенные стандарты"
 ];
 
-let state = load() || { thoughts: [] };
+let state = load() || {
+  chats: [
+    { id: "chat1", name: "Чат 1", thoughts: [] }
+  ],
+  activeChatId: "chat1"
+};
+  
+function getActiveChat() {
+  return state.chats.find(c => c.id === state.activeChatId);
+}
+
+
+function renderChats() {
+  sideDrawer.innerHTML = '<h3>Выбрать чат</h3>';
+  state.chats.forEach(chat => {
+    const div = document.createElement("div");
+    div.className = "chat-item";
+    div.textContent = chat.name;
+    div.addEventListener("click", () => { 
+      state.activeChatId = chat.id; 
+      save(); render(); renderChats();
+    });
+    sideDrawer.appendChild(div);
+  });
+
+  const addBtn = document.createElement("button");
+  addBtn.className = "icon-btn";
+  addBtn.textContent = "+";
+  addBtn.style.marginTop = "10px";
+  addBtn.addEventListener("click", () => {
+    const name = prompt("Название нового чата:");
+    if(!name) return;
+    const id = Date.now().toString(36);
+    state.chats.push({ id, name, thoughts: [] });
+    state.activeChatId = id;
+    save(); render(); renderChats();
+  });
+  sideDrawer.appendChild(addBtn);
+}
+
+
+  
+  
+
+
 
 /* ====== Сохранялка/загрузилка ====== */
 function save(){
@@ -208,8 +313,9 @@ function renderCheats(){
     d.className = "cheat-item";
     d.textContent = c;
     d.addEventListener("click", ()=> {
-      if(!state.thoughts.length){ alert("Сначала добавь мысль."); return; }
-      const last = state.thoughts[state.thoughts.length-1];
+     const chat = getActiveChat();
+if(!chat.thoughts.length){ alert("Сначала добавь мысль."); return; }
+const last = chat.thoughts[chat.thoughts.length-1];
       last.distortions = last.distortions || [];
       last.distortions.push(c);
       save(); render();
@@ -218,6 +324,10 @@ function renderCheats(){
   });
 }
 
+  function getActiveChat() {
+  return state.chats.find(c => c.id === state.activeChatId);
+}
+  
 /* ====== Render chat ====== */
 function render(){
   chatArea.innerHTML = "";
@@ -305,26 +415,29 @@ addBtn.addEventListener("click", ()=>{
   const text = newText.value.trim();
   if(!text){ alert("Напиши мысль в поле слева."); newText.focus(); return; }
   const pct = Math.max(0, Math.min(100, parseInt(newPct.value||0,10)));
-  state.thoughts.push({ id: Date.now().toString(36), text, beliefPercent: pct, distortions: [], rationals: [] });
+  const chat = getActiveChat();
+chat.thoughts.push({ id: Date.now().toString(36), text, beliefPercent: pct, distortions: [], rationals: [] });
+({ id: Date.now().toString(36), text, beliefPercent: pct, distortions: [], rationals: [] });
   newText.value = ""; newPct.value = 50;
   save(); render();
-  // scroll to bottom
-  setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
 });
+
 
 /* add rational */
 function addRational(thIdx){
   const text = prompt("Текст рациональной мысли (коротко):");
   if(text === null) return;
   const percent = parseInt(prompt("Во сколько процентов веришь в эту рациональную мысль? (0-100)","50")||"50",10);
-  state.thoughts[thIdx].rationals = state.thoughts[thIdx].rationals || [];
-  state.thoughts[thIdx].rationals.push({ id: Date.now().toString(36), text: text.trim(), percent: Math.max(0, Math.min(100, percent||0))});
+  const chat = getActiveChat();
+chat.thoughts[thIdx].rationals = chat.thoughts[thIdx].rationals || [];
+chat.thoughts[thIdx].rationals.push({ id: Date.now().toString(36), text: text.trim(), percent: Math.max(0, Math.min(100, percent||0)) });
   save(); render();
 }
 
 /* edit negative thought */
 function editThought(idx){
-  const t = state.thoughts[idx];
+  const chat = getActiveChat();
+  const t = chat.thoughts[idx]; // <- здесь!
   const newText = prompt("Изменить негативную мысль:", t.text||"");
   if(newText === null) return;
   const newPct = prompt("Во сколько процентов веришь в эту мысль? (0-100)", String(t.beliefPercent||50));
@@ -334,9 +447,11 @@ function editThought(idx){
   save(); render();
 }
 
+
 /* edit rational */
 function editRational(thIdx, rIdx){
-  const r = state.thoughts[thIdx].rationals[rIdx];
+  const chat = getActiveChat();
+  const r = chat.thoughts[thIdx].rationals[rIdx]; // <- важно!
   const txt = prompt("Изменить рационал:", r.text||"");
   if(txt === null) return;
   const pct = prompt("Во сколько процентов веришь в эту рациональную мысль? (0-100)", String(r.percent||50));
@@ -346,9 +461,12 @@ function editRational(thIdx, rIdx){
   save(); render();
 }
 
+
 /* ====== Init ====== */
 renderCheats();
 render();
+  
+  
 </script>
 </body>
 </html>
