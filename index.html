@@ -197,7 +197,7 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 }
   
   .grid.shifted {
-  margin-left: 200px; /* ширина боковой панели */
+  margin-left: 220px; /* ширина боковой панели */
   transition: margin-left 0.3s;
 }
 .section {
@@ -310,11 +310,17 @@ if(!last.distortions.includes(c)) last.distortions.push(c);
   });
 }
   
- function scrollToBottom() {
-  chatArea.scrollTop = 0; 
-   setTimeout(scrollToBottom,50);
-}
 
+controls.appendChild(distortBtn);
+addBtn.onclick = () => {
+  const chat = getActiveChat();
+  if(!chat) return;
+  chat.thoughts.push({ text: newText.value.trim(), beliefPercent: parseInt(newPct.value)||0 });
+  newText.value=""; newPct.value="";
+  save();
+  render();
+  scrollToBottom();
+};
 
 
 /* ====== Render chat messages ====== */
@@ -341,16 +347,7 @@ distortBtn.onclick = (e) => {
     openDistortionPanel(idx);
 };
 
-controls.appendChild(distortBtn);
-addBtn.onclick = () => {
-  const chat = getActiveChat();
-  if(!chat) return;
-  chat.thoughts.push({ text: newText.value.trim(), beliefPercent: parseInt(newPct.value)||0 });
-  newText.value=""; newPct.value="";
-  save();
-  render();
-  scrollToBottom();
-};
+
 
     controls.appendChild(addRat); controls.appendChild(del); meta.appendChild(controls);
 
@@ -382,6 +379,10 @@ render = function(...args){
   setTimeout(scrollToBottom, 50);
 };
 
+   function scrollToBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+   setTimeout(scrollToBottom,50);
+}
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
@@ -394,36 +395,8 @@ renderChats(); renderCheats(); render();
 
 
 
-let touchStartX = 0;
-let touchStartY = 0;
-let touchStartTime = 0;
-let tracking = false;
 
-const SWIPE_THRESHOLD = 120;    // минимальное смещение для свайпа
-const SPEED_THRESHOLD = 0.3;    // минимальная скорость
-const ANGLE_RATIO = 2;          // dx должен быть в 2 раза больше dy
 
-document.body.addEventListener('touchstart', e => {
-  const x = e.touches[0].clientX;
-  const y = e.touches[0].clientY;
-  if(x < 30 || sideDrawer.classList.contains('open')) {
-    touchStartX = x;
-    touchStartY = y;
-    touchStartTime = Date.now();
-    tracking = true;
-  }
-});
-
-document.body.addEventListener('touchmove', e => {
-  if(!tracking) return;
-  const dx = e.touches[0].clientX - touchStartX;
-  const dy = e.touches[0].clientY - touchStartY;
-  
-  // если вертикальное движение сильнее, отменяем свайп
-  if(Math.abs(dy) > Math.abs(dx)) {
-    tracking = false;
-  }
-});
 
 document.body.addEventListener('touchend', e => {
   if(!tracking) return;
@@ -462,9 +435,9 @@ newText.focus();
   
   // поле мыслей
 newText.addEventListener('keydown', e => {
-  if(e.key === 'Enter'){
+  if(e.key === 'Enter' && !e.shiftKey){
     e.preventDefault();
-    newPct.focus();
+    addBtn.click();
   }
 });
 
@@ -475,6 +448,7 @@ newPct.addEventListener('keydown', e => {
     newText.focus();
   }
 });
+
 
 
  function editThought(idx){
@@ -536,10 +510,6 @@ adjustChatPadding();
 window.addEventListener("resize", adjustChatPadding);
 
 
-
- function openDistortionPanel(thoughtIdx){
-    const panel = document.getElementById("distortionPanel");
-    const content = document.getElementById("distortionContent");
 
     content.innerHTML = "";
 
