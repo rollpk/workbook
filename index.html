@@ -280,17 +280,6 @@ function getActiveChat(){ return state.chats.find(c=>c.id===state.activeChatId);
 
 
 
-/* ====== Render chats ====== */
-function renderChats(){
-  chatList.innerHTML="";
-  state.chats.forEach(c=>{
-    const div=document.createElement("div");
-    div.className="chat-item"+(c.id===state.activeChatId?" active":"");
-    div.textContent=c.name;
-    div.onclick=()=>{ state.activeChatId=c.id; save(); renderChats(); render(); sideDrawer.classList.remove("open"); };
-    chatList.appendChild(div);
-  });
-}
 
 
 /* ====== Render cheats ====== */
@@ -311,16 +300,16 @@ if(!last.distortions.includes(c)) last.distortions.push(c);
 }
   
 
-controls.appendChild(distortBtn);
-addBtn.onclick = () => {
-  const chat = getActiveChat();
-  if(!chat) return;
-  chat.thoughts.push({ text: newText.value.trim(), beliefPercent: parseInt(newPct.value)||0 });
-  newText.value=""; newPct.value="";
-  save();
-  render();
-  scrollToBottom();
+const del = document.createElement("button");
+del.className = "icon-btn ghost";
+del.textContent = "Удалить";
+del.onclick = (e) => { 
+    e.stopPropagation();
+    const chat = getActiveChat();
+    chat.thoughts.splice(idx,1);
+    save(); render(); 
 };
+
 
 
 /* ====== Render chat messages ====== */
@@ -347,6 +336,16 @@ distortBtn.onclick = (e) => {
     openDistortionPanel(idx);
 };
 
+const del = document.createElement("button");
+del.className = "icon-btn ghost";
+del.textContent = "Удалить";
+del.onclick = (e) => {
+    e.stopPropagation();
+    const chat = getActiveChat();
+    chat.thoughts.splice(idx, 1);
+    save();
+    render();
+};
 
 
     controls.appendChild(addRat); controls.appendChild(del); meta.appendChild(controls);
@@ -379,22 +378,28 @@ render = function(...args){
   setTimeout(scrollToBottom, 50);
 };
 
-   function scrollToBottom() {
-  chatArea.scrollTop = chatArea.scrollHeight;
-   setTimeout(scrollToBottom,50);
+function scrollToBottom() {
+    chatArea.scrollTop = chatArea.scrollHeight;
 }
+
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
 
- setTimeout(() => { chatArea.scrollTop = 0;
-                   setTimeout(scrollToBottom,50);
+setTimeout(() => { 
+    chatArea.scrollTop = 0;
+    setTimeout(scrollToBottom, 50);
+}, 100);
 
 
-};
 
 
-
+let tracking = false;
+let touchStartX = 0;
+let touchStartY = 0;
+const ANGLE_RATIO = 1.5;
+const SWIPE_THRESHOLD = 100;
+const SPEED_THRESHOLD = 0.3;
 
 
 
@@ -441,13 +446,7 @@ newText.addEventListener('keydown', e => {
   }
 });
 
-newPct.addEventListener('keydown', e => {
-  if(e.key === 'Enter'){
-    e.preventDefault();
-    addBtn.click();
-    newText.focus();
-  }
-});
+
 
 
 
@@ -510,9 +509,11 @@ adjustChatPadding();
 window.addEventListener("resize", adjustChatPadding);
 
 
+  const panel = document.getElementById("distortionPanel");
+const content = document.getElementById("distortionContent");
 
-    content.innerHTML = "";
 
+   
     CHEATS.forEach(c => {
         const item = document.createElement("div");
         item.className = "cheat-item";
@@ -530,9 +531,7 @@ window.addEventListener("resize", adjustChatPadding);
         content.appendChild(item);
     });
 
-    panel.classList.add("open");
-}
-
+  
 // закрытие свайпом вниз для панели искажений
 const panel = document.getElementById("distortionPanel");
 let startY = 0;
@@ -559,8 +558,28 @@ document.getElementById("distortionPanel").addEventListener("click", e=>{
  
 function openDistortionPanel(idx){
     const panel = document.getElementById("distortionPanel");
+    const content = document.getElementById("distortionContent");
+    content.innerHTML = "";
+
+    CHEATS.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "cheat-item";
+        item.textContent = c;
+        item.onclick = () => {
+            closeDistortionPanel();
+            const chat = getActiveChat();
+            const t = chat.thoughts[idx];
+            t.distortions = t.distortions || [];
+            if(!t.distortions.includes(c)) t.distortions.push(c);
+            save();
+            render();
+        };
+        content.appendChild(item);
+    });
+
     panel.classList.add("open");
 }
+
 function closeDistortionPanel(){
     document.getElementById("distortionPanel").classList.remove("open");
 }
