@@ -185,11 +185,10 @@ document.body.addEventListener('touchmove', e => {
 });
 document.body.addEventListener('touchend', e => {
   const dx = touchEndX - touchStartX;
-  if(dx > SWIPE_THRESHOLD) sideDrawer.classList.add('open');    // свайп вправо — открыть
-  if(dx < -SWIPE_THRESHOLD) sideDrawer.classList.remove('open'); // свайп влево — закрыть
+  if(dx > 150) sideDrawer.classList.add('open');      // свайп вправо — открыть
+  if(dx < -150) sideDrawer.classList.remove('open');   // свайп влево — закрыть
   touchStartX = 0; touchEndX = 0;
 });
-
   
   
 
