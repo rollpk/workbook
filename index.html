@@ -159,11 +159,13 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   opacity: 1;
 }
 
-@media (max-width: 800px) {
-  .side-section {
-    display: none; /* полностью убрать боковую панель на телефоне */
+@media(max-width:800px){
+  aside.side-section {
+     display:none !important;
   }
 }
+
+  
 
 .close-distortion {
     position: absolute;
@@ -179,6 +181,21 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
     opacity: 1;
 }
 
+.chat-area {
+  display: flex;
+  flex-direction: column-reverse; /* ВАЖНО */
+}
+.send-btn {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
 </style>
 </head>
@@ -212,7 +229,8 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 <div class="fixed-input">
   <textarea id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." rows="1"></textarea>
   <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На сколько % веришь?" />
-  <button id="addBtn" class="icon-btn">Добавить</button>
+  <button id="addBtn" class="icon-btn send-btn">➤</button>
+
 </div>
 
 <div id="distortionPanel" class="distortion-panel">
@@ -243,8 +261,7 @@ const menuBtn=document.getElementById("menuBtn");
 function save(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
 function getActiveChat(){ return state.chats.find(c=>c.id===state.activeChatId); }
 
-/* ====== Drawer toggle ====== */
-menuBtn.onclick=()=>{ sideDrawer.classList.toggle("open"); }
+
 
 /* ====== Render chats ====== */
 function renderChats(){
@@ -257,11 +274,7 @@ function renderChats(){
     chatList.appendChild(div);
   });
 }
-newChatBtn.onclick=()=>{
-  const name=prompt("Название нового чата:"); if(!name) return;
-  const id=Date.now().toString(36);
-  state.chats.push({id,name, thoughts:[]}); state.activeChatId=id; save(); renderChats(); render();
-};
+
 
 /* ====== Render cheats ====== */
 function renderCheats(){
@@ -298,8 +311,10 @@ distortBtn.className = "icon-btn ghost";
 distortBtn.textContent = "Искажения";
 distortBtn.onclick = (e) => {
     e.stopPropagation();
+    closeDistortionPanel(); // <-- закрываем предыдущую
     openDistortionPanel(idx);
 };
+
 controls.appendChild(distortBtn);
  addRat.onclick=e=>{ e.stopPropagation(); addRational(idx); };
     const del=document.createElement("button"); del.className="icon-btn"; del.textContent="Удалить"; del.onclick=e=>{ e.stopPropagation(); if(confirm("Удалить мысль?")){ chat.thoughts.splice(idx,1); save(); render(); } };
@@ -349,6 +364,7 @@ if(/Android|iPhone/i.test(navigator.userAgent)){
   }
 
   newText.value = "";
+  newText.focus()
   newPct.value = "";
   save();
   render();
@@ -359,23 +375,17 @@ if(/Android|iPhone/i.test(navigator.userAgent)){
   newText.blur();
 newPct.blur();
 chatArea.scrollTop = chatArea.scrollHeight;
-
 setTimeout(() => {
-    chatArea.scrollTop = chatArea.scrollHeight;
+    chatArea.scrollTo({ top: 0, behavior: 'smooth' });
 }, 50);
 
-
-  setTimeout(()=> chatArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),100);
-};
 
 
 /* ====== Init ====== */
 renderChats(); renderCheats(); render();
 
 
-// кнопка меню
-menuBtn.onclick = () => {
-  sideDrawer.classList.toggle('open');
+
 };
 
 // свайп
@@ -497,6 +507,7 @@ newChatBtn.onclick = () => {
   renderChats();
   render();
 };
+
 let editingRational = null; // null = ввод мысли, иначе {thoughtIdx, rationalIdx}
   
  const toggleCheatsBtn = document.getElementById("toggleCheats");
@@ -510,7 +521,7 @@ toggleCheatsBtn.onclick = () => {
     cheatDiv.classList.add("open");
     cheatDiv.style.maxHeight = cheatDiv.scrollHeight + "px";
   }
-  adjustChatPadding();
+  
 };
 
 
@@ -520,8 +531,9 @@ function adjustChatPadding() {
     chat.style.paddingBottom = (panel.offsetHeight + 20) + "px";
 }
 
- window.addEventListener("resize", adjustChatPadding);
 adjustChatPadding();
+window.addEventListener("resize", adjustChatPadding);
+
 
 const origRender = render;
 render = function(...args){
@@ -554,9 +566,24 @@ render = function(...args){
     panel.classList.add("open");
 }
 
-function closeDistortionPanel(){
-    document.getElementById("distortionPanel").classList.remove("open");
-}
+// закрытие свайпом вниз для панели искажений
+const panel = document.getElementById("distortionPanel");
+let startY = 0;
+
+panel.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+});
+
+panel.addEventListener("touchmove", e => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+
+    // если тянем вниз больше чем на 60px — закрываем
+    if (diff > 60) {
+        closeDistortionPanel();
+    }
+});
+
 
 // закрытие свайпом вниз
 document.getElementById("distortionPanel").addEventListener("click", e=>{
@@ -567,6 +594,21 @@ document.getElementById("distortionPanel").addEventListener("click", e=>{
     document.getElementById("distortionPanel").classList.remove("open");
 }
  
+// скрываем клаву на телефонах
+if(/Android|iPhone/i.test(navigator.userAgent)){
+    setTimeout(() => {
+        newText.blur();
+        newPct.blur();
+        document.activeElement.blur();
+        window.scrollTo(0,0);
+    }, 50);
+}
+
+
+  setTimeout(() => {
+    chatArea.scrollTop = 0;
+}, 20);
+
 </script>
 </body>
 </html>
