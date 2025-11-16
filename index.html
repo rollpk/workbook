@@ -217,6 +217,7 @@
 
 
 
+
       /* oncontextmenu блокируется глобальным обработчиком ниже */
 
       if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите в любом месте чата, чтобы добавить первую мысль.</div>'; }
@@ -450,7 +451,12 @@ mainGrid.addEventListener('touchend', e => {
 
 
     // Дополнительные глобальные слушатели для блокировки стандартного поведения браузера
-    document.addEventListener('contextmenu', e => e.preventDefault());
+   document.addEventListener('contextmenu', e => {
+    if (!e.target.closest('.chat-message') && !e.target.closest('.note')) {
+        e.preventDefault();
+    }
+});
+
     document.addEventListener('selectstart', e => e.preventDefault());
     document.addEventListener('dragstart', e => e.preventDefault());
 
