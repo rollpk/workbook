@@ -209,11 +209,12 @@
           }
       };
       
-    chatArea.onclick = (e) => {
-    if(e.target === chatArea || e.target.classList.contains('note')){
-        openContextMenu(e, null, 'empty');
-    }
+ chatArea.onclick = (e) => {
+  if(e.target === chatArea || e.target.classList.contains('note')){
+      openContextMenu(e, null, 'empty');
+  }
 };
+
 
 
       /* oncontextmenu блокируется глобальным обработчиком ниже */
@@ -226,7 +227,7 @@
         group.style.display = "flex"; group.style.flexDirection = "column"; group.style.gap = "4px";
         
         const handleClickThought = (e) => { e.stopPropagation(); openContextMenu(e, idx, 'thought'); };
-group.onclick = handleClickThought;
+
 
         /* oncontextmenu блокируется глобальным обработчиком ниже */
 
@@ -249,7 +250,7 @@ group.onclick = handleClickThought;
             rGroup.className = "chat-message-group";
             
             const handleClickRational = (e) => { e.stopPropagation(); openContextMenu(e, idx, 'rational', ri); };
-            rGroup.onclick = handleClickRational;
+           
             /* oncontextmenu блокируется глобальным обработчиком ниже */
 
             const rat = document.createElement("div"); rat.className = "chat-message rat"; rat.textContent = r.text || "(пусто)"; 
