@@ -231,7 +231,8 @@
         group.style.display = "flex"; group.style.flexDirection = "column"; group.style.gap = "4px";
         
         const handleClickThought = (e) => { e.stopPropagation(); openContextMenu(e, idx, 'thought'); };
-        group.onclick = handleClickThought;
+group.onclick = handleClickThought;
+
         /* oncontextmenu блокируется глобальным обработчиком ниже */
 
         const neg = document.createElement("div"); neg.className = "chat-message neg"; neg.textContent = t.text || "(пустая мысль)"; 
@@ -282,12 +283,13 @@
         closeContextMenu();
 
         const menuItems = [];
-        if (type === 'thought') {
-            menuItems.push({ name: "Редактировать мысль", action: () => openInputModal('editThought', tIdx) });
-            menuItems.push({ name: "+ Рационал", action: () => openInputModal('newRational', tIdx) });
-            menuItems.push({ name: "Искажения", action: () => openDistortionPanel(tIdx) });
-            menuItems.push({ name: "Удалить мысль", action: () => deleteItem(tIdx, type) });
-        } else if (type === 'rational') {
+       if (type === 'thought') {
+    menuItems.push({ name: "Редактировать мысль", action: () => openInputModal('editThought', tIdx) });
+    menuItems.push({ name: "+ Рационал", action: () => openInputModal('newRational', tIdx) });
+    menuItems.push({ name: "Искажения", action: () => openDistortionPanel(tIdx) });
+    menuItems.push({ name: "Удалить мысль", action: () => deleteItem(tIdx, type) });
+}
+ else if (type === 'rational') {
             menuItems.push({ name: "Редактировать рационал", action: () => openInputModal('editRational', tIdx, rIdx) });
             menuItems.push({ name: "Удалить рационал", action: () => deleteItem(tIdx, type, rIdx) });
         } else if (type === 'empty') {
