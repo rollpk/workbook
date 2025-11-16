@@ -238,13 +238,7 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
     <div id="chatArea" class="chat-area" aria-live="polite"></div>
 
 
-  </div>
-  <aside class="side-section">
-  <h3>Шпаргалка — искажения</h3>
-  <button id="toggleCheats" class="icon-btn" style="margin-bottom:6px;">Показать / Скрыть</button>
-  <div id="cheatList" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease;"></div>
-  <div style="margin-top:10px;" class="small">Клик — добавит искажение в последнюю мысль.</div>
-</aside>
+ 
 
 </div>
 
@@ -276,8 +270,7 @@ const chatArea=document.getElementById("chatArea");
 const addBtn=document.getElementById("addBtn");
 const newText=document.getElementById("newThoughtText");
 const newPct=document.getElementById("newThoughtPct");
-const cheatListEl = document.getElementById("cheatList"); // Добавили El
-const chatListEl = document.getElementById("chatList");   // Добавили El
+
 const newChatBtn=document.getElementById("newChatBtn");
 const sideDrawer=document.getElementById("sideDrawer");
 const menuBtn=document.getElementById("menuBtn");
@@ -366,17 +359,7 @@ del.onclick = (e) => {
   });
 }
 
-/* ====== Actions ====== */
-newText.value = "";
-  newPct.value = "";
-  save();
-  render();
-  scrollToBottom();
 
-  newText.blur();
-  newPct.blur();
-  document.querySelector(".fixed-input").style.bottom = "12px";
-};
 
 // авто-прокрутка при render
 const origRender = render;
@@ -445,13 +428,7 @@ newText.focus();
 
 
   
-  // поле мыслей
-newText.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && !e.shiftKey){
-    e.preventDefault();
-    addBtn.click();
-  }
-});
+ 
 
 
 
@@ -474,10 +451,7 @@ newText.addEventListener('keydown', e => {
   render();
 }
 
-newText.addEventListener("input", () => {
-  newText.style.height = "auto";
-  newText.style.height = newText.scrollHeight + "px";
-});
+
 
 newChatBtn.onclick = () => {
   const count = state.chats.length + 1;
@@ -492,8 +466,6 @@ newChatBtn.onclick = () => {
 
 let editingRational = null; // null = ввод мысли, иначе {thoughtIdx, rationalIdx}
   
- const cheatListEl = document.getElementById("cheatList");
-const chatListEl = document.getElementById("chatList");
 
 
 document.getElementById("toggleCheats").onclick = () => {
@@ -532,50 +504,19 @@ window.addEventListener("resize", adjustChatPadding);
     });
 
   
-// закрытие свайпом вниз для панели искажений
-const panel = document.getElementById("distortionPanel");
-let startY = 0;
-
-panel.addEventListener("touchstart", e => {
-    startY = e.touches[0].clientY;
-});
-
-panel.addEventListener("touchmove", e => {
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
-    if (diff > 60) {
-        closeDistortionPanel();
-        e.preventDefault();
-    }
-});
 
 
 
-// закрытие свайпом вниз
-document.getElementById("distortionPanel").addEventListener("click", e=>{
-    if(e.target.id === "distortionPanel") closeDistortionPanel();
-});
+
+
+
  
 function openDistortionPanel(idx){
     const panel = document.getElementById("distortionPanel");
     const content = document.getElementById("distortionContent");
     content.innerHTML = "";
 
-    CHEATS.forEach(c => {
-        const item = document.createElement("div");
-        item.className = "cheat-item";
-        item.textContent = c;
-        item.onclick = () => {
-            closeDistortionPanel();
-            const chat = getActiveChat();
-            const t = chat.thoughts[idx];
-            t.distortions = t.distortions || [];
-            if(!t.distortions.includes(c)) t.distortions.push(c);
-            save();
-            render();
-        };
-        content.appendChild(item);
-    });
+
 
     panel.classList.add("open");
 }
@@ -593,11 +534,12 @@ if(/Android|iPhone/i.test(navigator.userAgent)){
     }, 100); // немного больше задержка
 }
 
-menuBtn.onclick = e => {
-  e.stopPropagation();
-  sideDrawer.classList.toggle('open');
-  document.querySelector('.grid').classList.toggle('shifted');
+menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    sideDrawer.classList.toggle("open");
+    document.querySelector(".grid").classList.toggle("shifted");
 };
+
 
 
 /* Добавьте этот код в ваш <script> */
@@ -609,8 +551,7 @@ function toggleMenu() {
     // document.querySelector('.grid').classList.toggle('shifted');
 }
 
-// Добавляем обработчик клика к кнопке меню
-menuBtn.addEventListener("click", toggleMenu);
+
 
   // Функция обработки кнопки "➤"
 function addThought() {
@@ -624,7 +565,7 @@ function addThought() {
 
   const chat = getActiveChat();
   chat.thoughts.push({
-      text: text,
+      text,
       beliefPercent: belief,
       distortions: [],
       rationals: []
@@ -639,6 +580,7 @@ function addThought() {
   newText.style.height = "auto";
 }
 
+
   newText.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -649,6 +591,67 @@ function addThought() {
 
 // Привязываем функцию к кнопке "Добавить"
 addBtn.addEventListener('click', addThought);
+  
+  menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    sideDrawer.classList.toggle("open");
+    document.querySelector(".grid").classList.toggle("shifted");
+};
+
+  function openDistortionPanel(idx){
+    const panel = document.getElementById("distortionPanel");
+    const content = document.getElementById("distortionContent");
+    content.innerHTML = "";
+
+    CHEATS.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "cheat-item";
+        item.textContent = c;
+        item.onclick = () => {
+            const chat = getActiveChat();
+            const t = chat.thoughts[idx];
+            t.distortions = t.distortions || [];
+            if(!t.distortions.includes(c)) t.distortions.push(c);
+            save();
+            render();
+            closeDistortionPanel();
+        };
+        content.appendChild(item);
+    });
+
+    panel.classList.add("open");
+}
+
+function closeDistortionPanel(){
+    document.getElementById("distortionPanel").classList.remove("open");
+}
+
+  function addThought() {
+    const text = newText.value.trim();
+    let belief = parseInt(newPct.value, 10);
+
+    if (!text) return;
+
+    if (isNaN(belief)) belief = 0;
+    belief = Math.max(0, Math.min(100, belief));
+
+    const chat = getActiveChat();
+    chat.thoughts.push({
+        text,
+        beliefPercent: belief,
+        distortions: [],
+        rationals: []
+    });
+
+    save();
+    render();
+    scrollToBottom();
+
+    newText.value = "";
+    newPct.value = "";
+}
+addBtn.onclick = addThought;
+
   
 </script>
 </body>
