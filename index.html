@@ -47,7 +47,15 @@
     .chat-item{ padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; color:var(--text); margin-bottom:6px; }
     .chat-item.active{ background:var(--accent); color:#fff; }
     .cheat-item{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:8px; cursor:pointer; color:var(--text); }
-    .note{ color:var(--muted); font-size:13px; padding: 14px; text-align: center; }
+    
+   .note{ 
+    color:var(--muted); 
+    font-size:13px; 
+    padding: 14px; 
+    text-align: center; 
+    margin-top: 30px; /* отступ сверху для первого сообщения */
+}
+
     .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
     .side-drawer h3 { margin-left: 0; }
     
@@ -200,7 +208,19 @@
               openContextMenu(e, null, 'empty');
           }
       };
-      chatArea.onclick = handleEmptyClick;
+      chatArea.onclick = (e) => {
+    // Если меню открыто — закрываем и выходим
+    if(sideDrawer.classList.contains('open')) {
+        closeMenu();
+        return; // дальше ничего не делаем
+    }
+
+    // Если клик по пустому месту чата — открываем контекст/редактор
+    if(e.target === chatArea || e.target.classList.contains('note')){
+        openContextMenu(e, null, 'empty');
+    }
+};
+
       /* oncontextmenu блокируется глобальным обработчиком ниже */
 
       if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите в любом месте чата, чтобы добавить первую мысль.</div>'; }
@@ -254,7 +274,7 @@
 
 
     function render() { renderUI(); }
-    function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+   
 
     /* ====== Context Menu Functions ====== */
     function openContextMenu(e, tIdx, type, rIdx = null) {
@@ -420,17 +440,15 @@
     menuBtn.onclick = toggleMenu;
 
     /* ====== Swipe gestures for mobile (Telegram-like) ====== */
-    let touchStartX = 0; let touchStartTime = 0;
-    mainGrid.addEventListener('touchstart', e => { 
-        if (sideDrawer.classList.contains('open') && e.changedTouches[0].clientX > 220) return; /* Игнорируем свайпы вне меню */
-        touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); 
-    });
-    mainGrid.addEventListener('touchend', e => {
-        const dx = e.changedTouches.clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
-        const SWIPE_THRESHOLD = 100; const SPEED_THRESHOLD = 0.3;
-        if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) { if (!sideDrawer.classList.contains('open')) { toggleMenu(); } } 
-        else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) { if (sideDrawer.classList.contains('open')) { closeMenu(); } }
-    });
+    let startX = 0;
+mainGrid.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
+mainGrid.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) < 50) return; // маленький свайп игнорируем
+    if(dx > 0 && !sideDrawer.classList.contains('open')) toggleMenu(); // свайп вправо открывает
+    if(dx < 0 && sideDrawer.classList.contains('open')) closeMenu(); // свайп влево закрывает
+});
+
 
     // Дополнительные глобальные слушатели для блокировки стандартного поведения браузера
     document.addEventListener('contextmenu', e => e.preventDefault());
