@@ -22,8 +22,10 @@
     .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 0; }
     .chat-area{ background:rgba(0,0,0,0.00); padding:14px 14px 80px 14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
     
-    .chat-message, .chat-message-group { -webkit-user-select: none; user-select: none; }
-    .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; cursor: pointer; }
+    /* Убираем user-select: none, так как теперь работаем по клику, а не по удержанию */
+    .chat-message, .chat-message-group { cursor: pointer; } 
+
+    .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; }
     .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
     .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
     .meta-row{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:6px; color:var(--muted); font-size:12px; }
@@ -168,18 +170,29 @@
     function renderUI() {
       const chat = getActiveChat();
       chatArea.innerHTML = "";
-      chatArea.oncontextmenu = (e) => openContextMenu(e, null, 'empty');
-      setupLongPress(chatArea, (e) => openContextMenu(e, null, 'empty'));
+      
+      // Клик на пустое поле чата вызывает меню
+      chatArea.onclick = (e) => {
+          // Проверяем, что клик был именно по chatArea, а не по сообщению внутри него
+          if (e.target === chatArea) {
+              openContextMenu(e, null, 'empty');
+          }
+      };
+      // Убираем oncontextmenu (ПКМ), чтобы не конфликтовать с обычным кликом на мобильных
+      chatArea.oncontextmenu = (e) => e.preventDefault();
 
-      if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите и удерживайте здесь, чтобы добавить первую мысль.</div>'; }
+
+      if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите в любом месте чата, чтобы добавить первую мысль.</div>'; }
 
       chat.thoughts.forEach((t, idx) => {
         const group = document.createElement("div"); 
         group.className = "chat-message-group";
         group.style.display = "flex"; group.style.flexDirection = "column"; group.style.gap = "6px";
-        group.oncontextmenu = (e) => openContextMenu(e, idx, 'thought');
-        setupLongPress(group, (e) => openContextMenu(e, idx, 'thought'));
         
+        // Обработчики клика для группы (негативная мысль)
+        group.onclick = (e) => { e.stopPropagation(); openContextMenu(e, idx, 'thought'); };
+        group.oncontextmenu = (e) => { e.preventDefault(); openContextMenu(e, idx, 'thought'); };
+
         const neg = document.createElement("div"); neg.className = "chat-message neg"; neg.textContent = t.text || "(пустая мысль)"; 
         const meta = document.createElement("div"); meta.className = "meta-row";
         const pct = document.createElement("div"); pct.textContent = (t.beliefPercent || 0) + "%"; meta.appendChild(pct);
@@ -192,8 +205,10 @@
           t.rationals.forEach((r, ri) => { 
             const rGroup = document.createElement("div");
             rGroup.className = "chat-message-group";
-            rGroup.oncontextmenu = (e) => openContextMenu(e, idx, 'rational', ri);
-            setupLongPress(rGroup, (e) => openContextMenu(e, idx, 'rational', ri));
+            
+            // Обработчики клика для группы (рациональная мысль)
+            rGroup.onclick = (e) => { e.stopPropagation(); openContextMenu(e, idx, 'rational', ri); };
+            rGroup.oncontextmenu = (e) => { e.preventDefault(); openContextMenu(e, idx, 'rational', ri); };
 
             const rat = document.createElement("div"); rat.className = "chat-message rat"; rat.textContent = r.text || "(пусто)"; 
             const rmeta = document.createElement("div"); rmeta.className = "meta-row rat-meta"; 
@@ -209,31 +224,6 @@
       scrollToBottom();
     }
 
-    // Эта функция предотвращает выделение текста на мобильных
-    function setupLongPress(element, callback) {
-        let touchTimeout;
-        let isLongPress = false;
-
-        element.addEventListener('touchstart', (e) => {
-            touchTimeout = setTimeout(() => {
-                isLongPress = true;
-                callback(e);
-            }, 500);
-        });
-
-        element.addEventListener('touchend', (e) => {
-            clearTimeout(touchTimeout);
-            if(isLongPress) {
-                e.preventDefault(); // Предотвращаем стандартное поведение (выделение/клик)
-                isLongPress = false;
-            }
-        });
-
-        element.addEventListener('touchmove', () => {
-            clearTimeout(touchTimeout);
-            isLongPress = false;
-        });
-    }
 
     function render() { renderUI(); }
     function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
@@ -255,6 +245,8 @@
         } else if (type === 'empty') {
             menuItems.push({ name: "Добавить мысль", action: () => openInputModal('newThought') });
         }
+        
+        if (menuItems.length === 0) return; // Ничего не показываем, если нет опций
 
         contextMenu.innerHTML = "";
         menuItems.forEach(item => {
@@ -263,11 +255,14 @@
             contextMenu.appendChild(itemEl);
         });
 
+        // Используем clientX/Y для позиционирования
         const clickX = e.clientX || (e.changedTouches ? e.changedTouches[0].clientX : 0);
         const clickY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : 0);
+        
         contextMenu.style.top = `${clickY}px`; contextMenu.style.left = `${clickX}px`;
         contextMenuOverlay.classList.add("open"); contextMenu.classList.add("open");
 
+        // Корректировка позиции
         setTimeout(() => {
             const menuRect = contextMenu.getBoundingClientRect();
             if (menuRect.bottom > window.innerHeight) { contextMenu.style.top = `${window.innerHeight - menuRect.height - 10}px`; }
@@ -387,9 +382,9 @@
 
     /* ====== Swipe gestures for mobile (Telegram-like) ====== */
     let touchStartX = 0; let touchStartTime = 0;
-    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; touchStartTime = Date.now(); });
+    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); });
     document.body.addEventListener('touchend', e => {
-        const dx = e.changedTouches[0].clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
+        const dx = e.changedTouches.clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
         const SWIPE_THRESHOLD = 100; const SPEED_THRESHOLD = 0.3;
         if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) { if (!sideDrawer.classList.contains('open')) { toggleMenu(); } } 
         else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) { if (sideDrawer.classList.contains('open')) { closeMenu(); } }
