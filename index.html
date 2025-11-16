@@ -15,37 +15,24 @@
       --accent:#4A90E2;
     }
     body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
-    body.menu-open { overflow: hidden; } /* Запрет скролла при открытом меню */
-    .container{ max-width:1200px; margin:0 auto; padding:10px; }
-    
+    body.menu-open { overflow: hidden; }
+
     .input-text{ 
       padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); min-width:220px; 
-      resize: none;
-      overflow-y: auto;
-      max-height: 150px;
-      transition: height 0.1s ease-out;
-      flex-grow: 1;
+      resize: none; overflow-y: auto; max-height: 150px; transition: height 0.1s ease-out; flex-grow: 1;
     }
     .input-num{ 
       width:72px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); text-align:center; 
     }
     .input-num::-webkit-outer-spin-button,
-    .input-num::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    .input-num[type=number] {
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
+    .input-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .input-num[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
-    /* На ПК убираем правую колонку (она пустая) и центрируем чат */
-    .grid{ display:grid; grid-template-columns:1fr; gap:0; transition: margin-left 0.3s; max-width: 800px; margin: 0 auto; }
+    /* На ПК убираем правую колонку, центрируем чат и панель ввода */
+    .grid{ display:grid; grid-template-columns:1fr; gap:0; max-width: 800px; margin: 0 auto; }
     .side-section { display: none !important; }
 
     .chat-area{ background:rgba(0,0,0,0.04); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
-    
-    /* Ограничиваем ширину сообщений на ПК */
     .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; }
     .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
     .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
@@ -59,58 +46,38 @@
     .chat-item.active{ background:var(--accent); color:#fff; }
     .cheat-item{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:8px; cursor:pointer; color:var(--text); }
     .note{ color:var(--muted); font-size:13px; margin-top:8px; padding: 14px; }
-    .menu-btn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      width: 36px;
-      height: 36px;
-      font-size: 18px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.15);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
-      cursor: pointer;
-    }
-
+    .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
     .side-drawer h3 { margin-left: 0; }
     .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 80px; }
     
     .fixed-input {
-      position: fixed;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 8px;
-      background: var(--card);
-      padding: 12px 16px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      z-index: 2000;
-      max-width: 95%;
-      min-width: 320px;
-      align-items: flex-end;
-      width: calc(100% - 32px); /* Чтобы панель ввода была адаптивной */
-      max-width: 780px; /* Ограничение ширины панели ввода на ПК */
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 8px; background: var(--card); padding: 12px 16px;
+      border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 2000;
+      max-width: 95%; min-width: 320px; align-items: flex-end;
+      width: calc(100% - 32px); max-width: 780px;
+      transition: transform 0.3s ease; /* Добавлено для плавного сдвига */
     }
 
-    #distortionPanel {
-      position: fixed; left: 0; right: 0; bottom: 0; height: 60vh; background: var(--card);
-      border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
-      padding: 16px; z-index: 5000; transform: translateY(100%); transition: transform 0.3s ease; overflow-y: auto;
-    }
+    #distortionPanel { position: fixed; left: 0; right: 0; bottom: 0; height: 60vh; background: var(--card); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.4); padding: 16px; z-index: 5000; transform: translateY(100%); transition: transform 0.3s ease; overflow-y: auto; }
     #distortionPanel.open { transform: translateY(0); }
     .close-distortion { position: absolute; top: 8px; right: 12px; font-size: 22px; cursor: pointer; opacity: 0.7; transition: 0.2s; }
     .close-distortion:hover { opacity: 1; }
     .send-btn { background: var(--accent); color: #fff; border-radius: 50%; width: 42px; height: 42px; font-size: 20px; display:flex; align-items:center; justify-content:center; border: none; cursor: pointer; }
     
+    /* Используем transform вместо margin-left для плавности сдвига контента */
+    .grid.shifted { transform: translateX(110px); } /* Сдвиг на половину ширины меню */
+    .fixed-input.shifted { transform: translateX(calc(-50% + 110px)); }
+
     /* Адаптивность для мобильных устройств (ширина до 800px) */
     @media(max-width:800px){ 
-      .grid { max-width: 100%; margin: 0; }
+      .grid, .grid.shifted { max-width: 100%; margin: 0; transform: translateX(0); } /* Сдвиг на мобильных через JS свайп */
       .chat-message { max-width: 85%; }
-      .fixed-input { max-width: 95%; }
-      .grid.shifted { margin-left: 220px !important; }
+      .fixed-input, .fixed-input.shifted { max-width: 95%; transform: translateX(-50%); }
+
+      /* На мобильных сдвигаем контент только при открытом меню, используя классы JS */
+      .content-shifted { transform: translateX(220px) !important; }
+      .input-shifted { transform: translateX(calc(-50% + 110px)) !important; }
     }
   </style>
 </head>
@@ -137,7 +104,7 @@
   </div>
 
   <!-- Фиксированная панель ввода -->
-  <div class="fixed-input">
+  <div class="fixed-input" id="fixedInputArea">
     <textarea id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." rows="1"></textarea>
     <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На %" />
     <button id="sendBtn" class="icon-btn send-btn">➤</button>
@@ -156,6 +123,7 @@
     const sendBtn = document.getElementById("sendBtn");
     const newText = document.getElementById("newThoughtText");
     const newPct = document.getElementById("newThoughtPct");
+    const fixedInputArea = document.getElementById("fixedInputArea"); // Новый элемент для панели ввода
     const newChatBtn = document.getElementById("newChatBtn");
     const sideDrawer = document.getElementById("sideDrawer");
     const menuBtn = document.getElementById("menuBtn");
@@ -175,10 +143,7 @@
             const item = document.createElement("div");
             item.className = `chat-item ${chat.id === state.activeChatId ? 'active' : ''}`;
             item.textContent = chat.name;
-            item.onclick = () => {
-                state.activeChatId = chat.id;
-                save(); renderChats(); renderUI(); closeMenu();
-            };
+            item.onclick = () => { state.activeChatId = chat.id; save(); renderChats(); renderUI(); closeMenu(); };
             chatListArea.appendChild(item);
         });
     }
@@ -187,7 +152,6 @@
       const chat = getActiveChat();
       chatArea.innerHTML = "";
       if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Добавьте первую внизу.</div>'; }
-
       chat.thoughts.forEach((t, idx) => {
         const group = document.createElement("div"); group.style.display = "flex"; group.style.flexDirection = "column"; group.style.gap = "6px";
         const neg = document.createElement("div"); neg.className = "chat-message neg"; neg.textContent = t.text || "(пустая мысль)"; neg.title = "Клик — редактировать мысль"; neg.onclick = () => editThought(idx);
@@ -247,21 +211,20 @@
         chat.thoughts.push({ text, beliefPercent: belief, distortions: [], rationals: [] });
       }
 
-      save();
-      render();
-      newText.value = "";
-      newPct.value = "";
+      save(); render();
+      newText.value = ""; newPct.value = "";
       autoExpandTextarea(newText);
+      newText.blur(); // Скрываем клавиатуру
     }
     
     function addRational(idx) {
+      // ... (функция addRational осталась без изменений)
       const chat = getActiveChat();
       const thought = chat.thoughts[idx];
       thought.rationals = thought.rationals || [];
       const rIdx = thought.rationals.length;
       thought.rationals.push({ text: "", percent: 0 });
-      save();
-      renderUI();
+      save(); renderUI();
       editingRational = { thoughtIdx: idx, rationalIdx: rIdx };
       newText.value = ""; 
       newText.placeholder = "Впишите новую рациональную мысль...";
@@ -271,6 +234,7 @@
     }
 
     function editThought(idx){
+      // ... (функция editThought осталась без изменений)
       const chat = getActiveChat();
       const t = chat.thoughts[idx];
       const newTextVal = prompt("Изменить мысль:", t.text || "");
@@ -283,6 +247,7 @@
     }
 
     function editRational(tIdx, rIdx) {
+        // ... (функция editRational осталась без изменений)
         const chat = getActiveChat();
         const r = chat.thoughts[tIdx].rationals[rIdx];
         const newTextVal = prompt("Изменить рационал:", r.text || "");
@@ -295,6 +260,7 @@
     }
 
     function openDistortionPanel(idx){
+      // ... (функция openDistortionPanel осталась без изменений)
       distortionContent.innerHTML = "";
       CHEATS.forEach(c => {
           const item = document.createElement("div");
@@ -315,6 +281,7 @@
     function closeDistortionPanel(){ distortionPanel.classList.remove("open"); }
 
     function openDistortionPanelForLast() {
+      // ... (функция openDistortionPanelForLast осталась без изменений)
       const chat = getActiveChat();
       if (!chat.thoughts.length) { alert("Сначала добавь мысль"); return; }
       const idx = chat.thoughts.length - 1;
@@ -322,15 +289,23 @@
     }
 
     function toggleMenu() {
-        sideDrawer.classList.toggle("open");
-        mainGrid.classList.toggle("shifted");
-        document.body.classList.toggle('menu-open', sideDrawer.classList.contains('open'));
+        const isOpen = sideDrawer.classList.toggle("open");
+        document.body.classList.toggle('menu-open', isOpen);
+        // Используем классы для transform
+        if (window.innerWidth <= 800) {
+            mainGrid.classList.toggle('content-shifted', isOpen);
+            fixedInputArea.classList.toggle('input-shifted', isOpen);
+        } else {
+            mainGrid.classList.toggle('shifted', isOpen);
+            fixedInputArea.classList.toggle('shifted', isOpen);
+        }
     }
 
     function closeMenu() {
         sideDrawer.classList.remove("open");
-        mainGrid.classList.remove("shifted");
         document.body.classList.remove('menu-open');
+        mainGrid.classList.remove('shifted', 'content-shifted');
+        fixedInputArea.classList.remove('shifted', 'input-shifted');
     }
     
     function adjustChatPadding(){
@@ -366,9 +341,9 @@
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (newPct.value.trim() === "" && document.activeElement === newText) {
-          newPct.focus(); // Переводим фокус на %
+          newPct.focus();
         } else {
-          addThoughtOrRational(); // Отправляем
+          addThoughtOrRational();
         }
       }
     });
@@ -376,7 +351,7 @@
     newPct.addEventListener("keydown", function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
-            addThoughtOrRational(); // Отправляем из поля %
+            addThoughtOrRational();
         }
     });
 
@@ -385,7 +360,7 @@
     let touchStartTime = 0;
 
     document.body.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].clientX;
+        touchStartX = e.changedTouches[0].clientX; /* Исправлено: e.changedTouches.clientX -> e.changedTouches[0].clientX */
         touchStartTime = Date.now();
     });
 
@@ -396,17 +371,10 @@
         const SWIPE_THRESHOLD = 100;
         const SPEED_THRESHOLD = 0.3;
 
-        // Открытие свайпом вправо (если меню закрыто)
         if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) {
-            if (!sideDrawer.classList.contains('open')) {
-                toggleMenu();
-            }
-        } 
-        // Закрытие свайпом влево (если меню открыто)
-        else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) {
-            if (sideDrawer.classList.contains('open')) {
-                closeMenu();
-            }
+            if (!sideDrawer.classList.contains('open')) { toggleMenu(); }
+        } else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) {
+            if (sideDrawer.classList.contains('open')) { closeMenu(); }
         }
     });
 
