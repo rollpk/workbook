@@ -213,7 +213,14 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
  
 }
 
+.side-section {
+  z-index: 1;
+}
+.chat-area {
+  z-index: 2;
+}
 
+  
 </style>
 </head>
 <body>
@@ -489,16 +496,10 @@ let editingRational = null; // null = ввод мысли, иначе {thoughtId
 const chatListEl = document.getElementById("chatList");
 
 
-toggleCheatsBtn.onclick = () => {
-  if(cheatDiv.classList.contains("open")){
-    cheatDiv.classList.remove("open");
-    cheatDiv.style.maxHeight = "0px";
-  } else {
-    cheatDiv.classList.add("open");
-    cheatDiv.style.maxHeight = cheatDiv.scrollHeight + "px";
-  }
-  
+document.getElementById("toggleCheats").onclick = () => {
+    cheatListEl.classList.toggle("open");
 };
+
 
 
 function adjustChatPadding(){
@@ -510,8 +511,6 @@ adjustChatPadding();
 window.addEventListener("resize", adjustChatPadding);
 
 
-  const panel = document.getElementById("distortionPanel");
-const content = document.getElementById("distortionContent");
 
 
    
@@ -615,29 +614,38 @@ menuBtn.addEventListener("click", toggleMenu);
 
   // Функция обработки кнопки "➤"
 function addThought() {
-    const text = newText.value.trim();
-    let belief = parseInt(newPct.value, 10);
+  const text = newText.value.trim();
+  let belief = parseInt(newPct.value, 10);
 
-    if (!text) return; // Не добавляем пустые мысли
+  if (!text) return;
 
-    if (isNaN(belief)) belief = 0;
-    belief = Math.max(0, Math.min(100, belief));
+  if (isNaN(belief)) belief = 0;
+  belief = Math.max(0, Math.min(100, belief));
 
-    const chat = getActiveChat();
-    chat.thoughts.push({
-        text: text,
-        beliefPercent: belief,
-        distortions: [],
-        rationals: []
-    });
+  const chat = getActiveChat();
+  chat.thoughts.push({
+      text: text,
+      beliefPercent: belief,
+      distortions: [],
+      rationals: []
+  });
 
-    newText.value = "";
-    newPct.value = "";
-    newText.style.height = "auto"; // Сброс высоты текстового поля
-    save();
-    render(); // Перерисовываем чат, чтобы увидеть новое сообщение
-    newText.focus(); // Возвращаем фокус в поле ввода
+  save();
+  render();
+  scrollToBottom();
+
+  newText.value = "";
+  newPct.value = "";
+  newText.style.height = "auto";
 }
+
+  newText.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    addThought();
+  }
+});
+
 
 // Привязываем функцию к кнопке "Добавить"
 addBtn.addEventListener('click', addThought);
