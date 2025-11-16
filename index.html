@@ -16,16 +16,11 @@
     }
     body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
     body.menu-open { overflow: hidden; }
-
-    /* Убрал стили для .input-text и .input-num из основного документа, они переехали в модальное окно */
-
+    
     .grid{ display:grid; grid-template-columns:1fr; gap:0; max-width: 800px; margin: 0 auto; transition: transform 0.3s ease; }
     .side-section { display: none !important; }
-
-    /* Убираем padding-bottom у section, так как нет фиксированной панели ввода */
     .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 0; }
-
-    .chat-area{ background:rgba(0,0,0,0.00); padding:14px 14px 80px 14px; /* Добавлен паддинг снизу для скролла */ display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
+    .chat-area{ background:rgba(0,0,0,0.00); padding:14px 14px 80px 14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
     
     .chat-message, .chat-message-group { -webkit-user-select: none; user-select: none; }
     .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; cursor: pointer; }
@@ -45,7 +40,7 @@
     .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
     .side-drawer h3 { margin-left: 0; }
     
-    .fixed-input, #openDistBtn { display: none !important; } /* Скрываем старую панель ввода и кнопку */
+    .fixed-input, #openDistBtn { display: none !important; }
 
     #distortionPanel { position: fixed; left: 0; right: 0; bottom: 0; height: 60vh; background: var(--card); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.4); padding: 16px; z-index: 5000; transform: translateY(100%); transition: transform 0.3s ease; overflow-y: auto; }
     #distortionPanel.open { transform: translateY(0); }
@@ -55,7 +50,7 @@
     .grid.shifted { transform: translateX(110px); }
 
     @media(max-width:800px){ 
-      .grid, .grid.shifted { max-width: 100vw; margin: 0; transform: translateX(0); } /* Фикс бага с горизонтальным скроллом */
+      .grid, .grid.shifted { max-width: 100vw; margin: 0; transform: translateX(0); }
       .chat-message { max-width: 85%; }
       .content-shifted { transform: translateX(220px) !important; }
     }
@@ -68,7 +63,6 @@
     .menu-item:last-child { border-bottom: none; }
     .menu-item:hover { background: rgba(255,255,255,0.05); }
 
-    /* Стили для нового модального окна ввода (Input Modal) */
     #inputModalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 6000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     #inputModalOverlay.open { opacity: 1; pointer-events: auto; }
     #inputModal {
@@ -137,8 +131,6 @@
     const STORAGE_KEY = "diary_chat_v3";
     const CHEATS = ["Катастрофизация", "Чтение мыслей", "Чёрно-белое мышление", "Эмоциональное обоснование", "Долженствование", "Обесценивание положительного", "Генерализация", "Персонализация", "Фильтрация отрицательного", "Завышенные стандарты"];
     let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { chats: [{ id: "chat1", name: "Чат 1", thoughts: [] }], activeChatId: "chat1" };
-    
-    // Переменные для отслеживания режима ввода в модальном окне
     let inputModalMode = { type: 'newThought', tIdx: null, rIdx: null }; 
 
     /* ====== UI elements ====== */
@@ -158,7 +150,6 @@
     const inputModalSendBtn = document.getElementById("inputModalSendBtn");
     const inputModalTitle = document.getElementById("inputModalTitle");
 
-
     function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function getActiveChat() { return state.chats.find(c => c.id === state.activeChatId); }
 
@@ -177,8 +168,6 @@
     function renderUI() {
       const chat = getActiveChat();
       chatArea.innerHTML = "";
-      
-      // Обработчики для пустого поля чата
       chatArea.oncontextmenu = (e) => openContextMenu(e, null, 'empty');
       setupLongPress(chatArea, (e) => openContextMenu(e, null, 'empty'));
 
@@ -220,24 +209,29 @@
       scrollToBottom();
     }
 
+    // Эта функция предотвращает выделение текста на мобильных
     function setupLongPress(element, callback) {
         let touchTimeout;
+        let isLongPress = false;
 
         element.addEventListener('touchstart', (e) => {
             touchTimeout = setTimeout(() => {
+                isLongPress = true;
                 callback(e);
-                e.preventDefault(); 
             }, 500);
         });
 
         element.addEventListener('touchend', (e) => {
             clearTimeout(touchTimeout);
-            // Если меню открыто, предотвращаем системное выделение/прокрутку
-            if(contextMenu.classList.contains('open')) e.preventDefault();
+            if(isLongPress) {
+                e.preventDefault(); // Предотвращаем стандартное поведение (выделение/клик)
+                isLongPress = false;
+            }
         });
 
         element.addEventListener('touchmove', () => {
             clearTimeout(touchTimeout);
+            isLongPress = false;
         });
     }
 
@@ -269,8 +263,8 @@
             contextMenu.appendChild(itemEl);
         });
 
-        const clickX = e.clientX || e.changedTouches.clientX;
-        const clickY = e.clientY || e.changedTouches.clientY;
+        const clickX = e.clientX || (e.changedTouches ? e.changedTouches[0].clientX : 0);
+        const clickY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : 0);
         contextMenu.style.top = `${clickY}px`; contextMenu.style.left = `${clickX}px`;
         contextMenuOverlay.classList.add("open"); contextMenu.classList.add("open");
 
@@ -299,44 +293,31 @@
 
     function openInputModal(modeType, tIdx = null, rIdx = null) {
         inputModalMode = { type: modeType, tIdx, rIdx };
-        inputModalText.value = '';
-        inputModalPct.value = '';
+        inputModalText.value = ''; inputModalPct.value = '';
         
         switch (modeType) {
-            case 'newThought':
-                inputModalTitle.textContent = 'Новая мысль';
-                inputModalText.placeholder = 'Опиши автоматическую негативную мысль...';
-                break;
-            case 'newRational':
-                inputModalTitle.textContent = 'Новый рационал';
-                inputModalText.placeholder = 'Впишите новую рациональную мысль...';
-                break;
+            case 'newThought': inputModalTitle.textContent = 'Новая мысль'; inputModalText.placeholder = 'Опиши автоматическую негативную мысль...'; break;
+            case 'newRational': inputModalTitle.textContent = 'Новый рационал'; inputModalText.placeholder = 'Впишите новую рациональную мысль...'; break;
             case 'editThought':
-                inputModalTitle.textContent = 'Редактировать мысль';
                 const t = getActiveChat().thoughts[tIdx];
-                inputModalText.value = t.text;
-                inputModalPct.value = t.beliefPercent;
-                break;
+                inputModalTitle.textContent = 'Редактировать мысль'; inputModalText.value = t.text; inputModalPct.value = t.beliefPercent; break;
             case 'editRational':
-                inputModalTitle.textContent = 'Редактировать рационал';
                 const r = getActiveChat().thoughts[tIdx].rationals[rIdx];
-                inputModalText.value = r.text;
-                inputModalPct.value = r.percent;
-                break;
+                inputModalTitle.textContent = 'Редактировать рационал'; inputModalText.value = r.text; inputModalPct.value = r.percent; break;
         }
 
-        inputModalOverlay.classList.add('open');
-        inputModal.classList.add('open');
-        setTimeout(() => inputModalText.focus(), 300);
+        inputModalOverlay.classList.add('open'); inputModal.classList.add('open');
+        setTimeout(() => { 
+            inputModalText.focus(); 
+            autoExpandTextarea(inputModalText);
+        }, 300);
     }
 
     function closeInputModal() {
-        inputModalOverlay.classList.remove('open');
-        inputModal.classList.remove('open');
+        inputModalOverlay.classList.remove('open'); inputModal.classList.remove('open');
         inputModalText.blur(); inputModalPct.blur();
     }
     inputModalOverlay.onclick = closeInputModal;
-
 
     function handleInputModalSubmit() {
         const text = inputModalText.value.trim();
@@ -344,42 +325,30 @@
         if (!text) return;
         if (isNaN(belief)) belief = 0; belief = Math.max(0, Math.min(100, belief));
         const chat = getActiveChat();
-
         const { type, tIdx, rIdx } = inputModalMode;
 
-        if (type === 'newThought') {
-            chat.thoughts.push({ text, beliefPercent: belief, distortions: [], rationals: [] });
-        } else if (type === 'newRational') {
-            chat.thoughts[tIdx].rationals.push({ text, percent: belief });
-        } else if (type === 'editThought') {
-            chat.thoughts[tIdx].text = text;
-            chat.thoughts[tIdx].beliefPercent = belief;
-        } else if (type === 'editRational') {
-            chat.thoughts[tIdx].rationals[rIdx].text = text;
-            chat.thoughts[tIdx].rationals[rIdx].percent = belief;
-        }
+        if (type === 'newThought') { chat.thoughts.push({ text, beliefPercent: belief, distortions: [], rationals: [] }); } 
+        else if (type === 'newRational') { chat.thoughts[tIdx].rationals.push({ text, percent: belief }); } 
+        else if (type === 'editThought') { chat.thoughts[tIdx].text = text; chat.thoughts[tIdx].beliefPercent = belief; } 
+        else if (type === 'editRational') { chat.thoughts[tIdx].rationals[rIdx].text = text; chat.thoughts[tIdx].rationals[rIdx].percent = belief; }
 
-        save(); render();
-        closeInputModal();
+        save(); render(); closeInputModal();
     }
     inputModalSendBtn.onclick = handleInputModalSubmit;
 
-    // Логика Enter в модальном окне
     inputModalText.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        if (inputModalPct.value.trim() === "" && document.activeElement === inputModalText) { inputModalPct.focus(); } 
-        else { handleInputModalSubmit(); }
+        if (inputModalPct.value.trim() === "" && document.activeElement === inputModalText) { inputModalPct.focus(); } else { handleInputModalSubmit(); }
       }
     });
+    inputModalPct.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); handleInputModalSubmit(); } });
 
-    inputModalPct.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); handleInputModalSubmit(); }
-    });
+    function autoExpandTextarea(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; }
+    inputModalText.addEventListener('input', () => autoExpandTextarea(inputModalText));
 
 
     /* ====== General Functions ====== */
-
     function openDistortionPanel(idx){
       distortionContent.innerHTML = "";
       CHEATS.forEach(c => {
@@ -403,14 +372,12 @@
             mainGrid.classList.toggle('shifted', isOpen);
         }
     }
-
     function closeMenu() {
         sideDrawer.classList.remove("open");
         document.body.classList.remove('menu-open');
         mainGrid.classList.remove('shifted', 'content-shifted');
     }
     
-
     /* ====== Event Listeners ====== */
     document.getElementById("newChatBtn").onclick = () => {
       const count = state.chats.length + 1; const name = "Чат " + count; const id = Date.now().toString(36);
@@ -418,17 +385,15 @@
     };
     menuBtn.onclick = toggleMenu;
 
-
     /* ====== Swipe gestures for mobile (Telegram-like) ====== */
     let touchStartX = 0; let touchStartTime = 0;
-    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); });
+    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; touchStartTime = Date.now(); });
     document.body.addEventListener('touchend', e => {
-        const dx = e.changedTouches.clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
+        const dx = e.changedTouches[0].clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
         const SWIPE_THRESHOLD = 100; const SPEED_THRESHOLD = 0.3;
         if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) { if (!sideDrawer.classList.contains('open')) { toggleMenu(); } } 
         else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) { if (sideDrawer.classList.contains('open')) { closeMenu(); } }
     });
-
 
     /* ====== Init ====== */
     renderChats(); 
