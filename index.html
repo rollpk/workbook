@@ -208,18 +208,13 @@
               openContextMenu(e, null, 'empty');
           }
       };
-      chatArea.onclick = (e) => {
-    // Если меню открыто — закрываем и выходим
-    if(sideDrawer.classList.contains('open')) {
-        closeMenu();
-        return; // дальше ничего не делаем
-    }
-
-    // Если клик по пустому месту чата — открываем контекст/редактор
+      
+    chatArea.onclick = (e) => {
     if(e.target === chatArea || e.target.classList.contains('note')){
         openContextMenu(e, null, 'empty');
     }
 };
+
 
       /* oncontextmenu блокируется глобальным обработчиком ниже */
 
@@ -292,9 +287,10 @@ group.onclick = handleClickThought;
  else if (type === 'rational') {
             menuItems.push({ name: "Редактировать рационал", action: () => openInputModal('editRational', tIdx, rIdx) });
             menuItems.push({ name: "Удалить рационал", action: () => deleteItem(tIdx, type, rIdx) });
-        } else if (type === 'empty') {
-            menuItems.push({ name: "Добавить мысль", action: () => openInputModal('newThought') });
-        }
+        }else if (type === 'empty') {
+    menuItems.push({ name: "Добавить мысль", action: () => openInputModal('newThought') });
+}
+
         
         if (menuItems.length === 0) return;
 
