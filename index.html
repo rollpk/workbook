@@ -17,25 +17,17 @@
     body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
     body.menu-open { overflow: hidden; }
 
-    .input-text{ 
-      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); min-width:220px; 
-      resize: none; overflow-y: auto; max-height: 150px; transition: height 0.1s ease-out; flex-grow: 1;
-    }
-    .input-num{ 
-      width:72px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); text-align:center; 
-    }
-    .input-num::-webkit-outer-spin-button,
-    .input-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .input-num[type=number] { -moz-appearance: textfield; appearance: textfield; }
+    /* Убрал стили для .input-text и .input-num из основного документа, они переехали в модальное окно */
 
     .grid{ display:grid; grid-template-columns:1fr; gap:0; max-width: 800px; margin: 0 auto; transition: transform 0.3s ease; }
     .side-section { display: none !important; }
 
-    .chat-area{ background:rgba(0,0,0,0.00); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
-    
-    /* Добавлено свойство, чтобы предотвратить выделение текста на мобильных */
-    .chat-message, .chat-message-group { -webkit-user-select: none; user-select: none; }
+    /* Убираем padding-bottom у section, так как нет фиксированной панели ввода */
+    .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 0; }
 
+    .chat-area{ background:rgba(0,0,0,0.00); padding:14px 14px 80px 14px; /* Добавлен паддинг снизу для скролла */ display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
+    
+    .chat-message, .chat-message-group { -webkit-user-select: none; user-select: none; }
     .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.35; cursor: pointer; }
     .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
     .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
@@ -49,48 +41,55 @@
     .chat-item{ padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; color:var(--text); margin-bottom:6px; }
     .chat-item.active{ background:var(--accent); color:#fff; }
     .cheat-item{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:8px; cursor:pointer; color:var(--text); }
-    .note{ color:var(--muted); font-size:13px; margin-top:8px; padding: 14px; }
+    .note{ color:var(--muted); font-size:13px; padding: 14px; text-align: center; }
     .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
     .side-drawer h3 { margin-left: 0; }
-    .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 80px; }
     
-    .fixed-input {
-      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; background: var(--card); padding: 12px 16px;
-      border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 2000;
-      max-width: 95%; min-width: 320px; align-items: flex-end;
-      width: calc(100% - 32px); max-width: 780px;
-      transition: transform 0.3s ease;
-    }
+    .fixed-input, #openDistBtn { display: none !important; } /* Скрываем старую панель ввода и кнопку */
 
     #distortionPanel { position: fixed; left: 0; right: 0; bottom: 0; height: 60vh; background: var(--card); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.4); padding: 16px; z-index: 5000; transform: translateY(100%); transition: transform 0.3s ease; overflow-y: auto; }
     #distortionPanel.open { transform: translateY(0); }
     .close-distortion { position: absolute; top: 8px; right: 12px; font-size: 22px; cursor: pointer; opacity: 0.7; transition: 0.2s; }
     .close-distortion:hover { opacity: 1; }
-    .send-btn { background: var(--accent); color: #fff; border-radius: 50%; width: 42px; height: 42px; font-size: 20px; display:flex; align-items:center; justify-content:center; border: none; cursor: pointer; }
-    
+
     .grid.shifted { transform: translateX(110px); }
-    .fixed-input.shifted { transform: translateX(calc(-50% + 110px)); }
 
     @media(max-width:800px){ 
-      .grid, .grid.shifted { max-width: 100%; margin: 0; transform: translateX(0); }
+      .grid, .grid.shifted { max-width: 100vw; margin: 0; transform: translateX(0); } /* Фикс бага с горизонтальным скроллом */
       .chat-message { max-width: 85%; }
-      .fixed-input, .fixed-input.shifted { max-width: 95%; transform: translateX(-50%); }
       .content-shifted { transform: translateX(220px) !important; }
-      .input-shifted { transform: translateX(calc(-50% + 110px)) !important; }
     }
 
     .context-menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 4000; opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
     .context-menu-overlay.open { opacity: 1; pointer-events: auto; }
-    .context-menu {
-        position: fixed; background: var(--card); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        z-index: 4001; opacity: 0; transform: scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease;
-        transform-origin: top left;
-    }
+    .context-menu { position: fixed; background: var(--card); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 4001; opacity: 0; transform: scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; transform-origin: top left; }
     .context-menu.open { opacity: 1; transform: scale(1); }
     .menu-item { padding: 10px 16px; cursor: pointer; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .menu-item:last-child { border-bottom: none; }
     .menu-item:hover { background: rgba(255,255,255,0.05); }
+
+    /* Стили для нового модального окна ввода (Input Modal) */
+    #inputModalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 6000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    #inputModalOverlay.open { opacity: 1; pointer-events: auto; }
+    #inputModal {
+        position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); padding: 16px;
+        z-index: 6001; transform: translateY(100%); transition: transform 0.3s ease;
+        border-top-left-radius: 16px; border-top-right-radius: 16px;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    #inputModal.open { transform: translateY(0); }
+    .input-modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .input-modal-actions { display: flex; gap: 8px; }
+    .input-modal-text {
+      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); width: 100%;
+      resize: none; overflow-y: auto; max-height: 150px; transition: height 0.1s ease-out; box-sizing: border-box;
+    }
+    .input-modal-num {
+      width:70px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); text-align:center;
+      -webkit-appearance: none; appearance: none;
+    }
+    .input-modal-num::-webkit-outer-spin-button, .input-modal-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
   </style>
 </head>
 <body>
@@ -115,39 +114,50 @@
     <aside class="side-section"></aside>
   </div>
 
-  <div class="fixed-input" id="fixedInputArea">
-    <textarea id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." rows="1"></textarea>
-    <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На %" />
-    <button id="sendBtn" class="icon-btn send-btn">➤</button>
-    <button id="openDistBtn" class="icon-btn">Искажения</button>
-  </div>
-
+  <!-- Контекстное меню -->
   <div class="context-menu-overlay" id="contextMenuOverlay"></div>
   <div class="context-menu" id="contextMenu"></div>
+
+  <!-- Модальное окно ввода -->
+  <div id="inputModalOverlay"></div>
+  <div id="inputModal">
+    <div class="input-modal-header">
+        <h4 id="inputModalTitle">Новая мысль</h4>
+        <div class="input-modal-actions">
+            <input id="inputModalPct" class="input-modal-num" type="number" min="0" max="100" placeholder="На %" />
+            <button id="inputModalSendBtn" class="icon-btn send-btn">➤</button>
+        </div>
+    </div>
+    <textarea id="inputModalText" class="input-modal-text" placeholder="Опиши мысль..." rows="3"></textarea>
+  </div>
+
 
   <script>
     /* ====== State ====== */
     const STORAGE_KEY = "diary_chat_v3";
     const CHEATS = ["Катастрофизация", "Чтение мыслей", "Чёрно-белое мышление", "Эмоциональное обоснование", "Долженствование", "Обесценивание положительного", "Генерализация", "Персонализация", "Фильтрация отрицательного", "Завышенные стандарты"];
     let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { chats: [{ id: "chat1", name: "Чат 1", thoughts: [] }], activeChatId: "chat1" };
-    let editingRational = null;
+    
+    // Переменные для отслеживания режима ввода в модальном окне
+    let inputModalMode = { type: 'newThought', tIdx: null, rIdx: null }; 
 
     /* ====== UI elements ====== */
     const chatArea = document.getElementById("chatArea");
-    const sendBtn = document.getElementById("sendBtn");
-    const newText = document.getElementById("newThoughtText");
-    const newPct = document.getElementById("newThoughtPct");
-    const fixedInputArea = document.getElementById("fixedInputArea");
-    const newChatBtn = document.getElementById("newChatBtn");
     const sideDrawer = document.getElementById("sideDrawer");
     const menuBtn = document.getElementById("menuBtn");
     const mainGrid = document.getElementById("mainGrid");
     const chatListArea = document.getElementById("chatListArea");
     const distortionPanel = document.getElementById("distortionPanel");
     const distortionContent = document.getElementById("distortionContent");
-    const openDistBtn = document.getElementById("openDistBtn");
     const contextMenu = document.getElementById("contextMenu");
     const contextMenuOverlay = document.getElementById("contextMenuOverlay");
+    const inputModal = document.getElementById("inputModal");
+    const inputModalOverlay = document.getElementById("inputModalOverlay");
+    const inputModalText = document.getElementById("inputModalText");
+    const inputModalPct = document.getElementById("inputModalPct");
+    const inputModalSendBtn = document.getElementById("inputModalSendBtn");
+    const inputModalTitle = document.getElementById("inputModalTitle");
+
 
     function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function getActiveChat() { return state.chats.find(c => c.id === state.activeChatId); }
@@ -167,14 +177,17 @@
     function renderUI() {
       const chat = getActiveChat();
       chatArea.innerHTML = "";
-      if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Добавьте первую внизу.</div>'; }
+      
+      // Обработчики для пустого поля чата
+      chatArea.oncontextmenu = (e) => openContextMenu(e, null, 'empty');
+      setupLongPress(chatArea, (e) => openContextMenu(e, null, 'empty'));
+
+      if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите и удерживайте здесь, чтобы добавить первую мысль.</div>'; }
 
       chat.thoughts.forEach((t, idx) => {
         const group = document.createElement("div"); 
-        group.className = "chat-message-group"; /* Новый класс для контейнера сообщения */
+        group.className = "chat-message-group";
         group.style.display = "flex"; group.style.flexDirection = "column"; group.style.gap = "6px";
-        
-        // Обработчики контекстного меню для группы
         group.oncontextmenu = (e) => openContextMenu(e, idx, 'thought');
         setupLongPress(group, (e) => openContextMenu(e, idx, 'thought'));
         
@@ -213,13 +226,14 @@
         element.addEventListener('touchstart', (e) => {
             touchTimeout = setTimeout(() => {
                 callback(e);
-                // Отменяем стандартное поведение выделения текста
                 e.preventDefault(); 
-            }, 500); // 500ms задержка
+            }, 500);
         });
 
-        element.addEventListener('touchend', () => {
+        element.addEventListener('touchend', (e) => {
             clearTimeout(touchTimeout);
+            // Если меню открыто, предотвращаем системное выделение/прокрутку
+            if(contextMenu.classList.contains('open')) e.preventDefault();
         });
 
         element.addEventListener('touchmove', () => {
@@ -227,9 +241,7 @@
         });
     }
 
-
     function render() { renderUI(); }
-    
     function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
 
     /* ====== Context Menu Functions ====== */
@@ -239,48 +251,38 @@
 
         const menuItems = [];
         if (type === 'thought') {
-            menuItems.push({ name: "Редактировать мысль", action: () => editThought(tIdx) });
-            menuItems.push({ name: "+ Рационал", action: () => addRational(tIdx) });
+            menuItems.push({ name: "Редактировать мысль", action: () => openInputModal('editThought', tIdx) });
+            menuItems.push({ name: "+ Рационал", action: () => openInputModal('newRational', tIdx) });
             menuItems.push({ name: "Искажения", action: () => openDistortionPanel(tIdx) });
             menuItems.push({ name: "Удалить мысль", action: () => deleteItem(tIdx, type) });
         } else if (type === 'rational') {
-            menuItems.push({ name: "Редактировать рационал", action: () => editRational(tIdx, rIdx) });
+            menuItems.push({ name: "Редактировать рационал", action: () => openInputModal('editRational', tIdx, rIdx) });
             menuItems.push({ name: "Удалить рационал", action: () => deleteItem(tIdx, type, rIdx) });
+        } else if (type === 'empty') {
+            menuItems.push({ name: "Добавить мысль", action: () => openInputModal('newThought') });
         }
 
         contextMenu.innerHTML = "";
         menuItems.forEach(item => {
-            const itemEl = document.createElement("div");
-            itemEl.className = "menu-item";
-            itemEl.textContent = item.name;
+            const itemEl = document.createElement("div"); itemEl.className = "menu-item"; itemEl.textContent = item.name;
             itemEl.onclick = () => { item.action(); closeContextMenu(); };
             contextMenu.appendChild(itemEl);
         });
 
-        const clickX = e.clientX || e.changedTouches[0].clientX;
-        const clickY = e.clientY || e.changedTouches[0].clientY;
-        
-        contextMenu.style.top = `${clickY}px`;
-        contextMenu.style.left = `${clickX}px`;
-        
-        contextMenuOverlay.classList.add("open");
-        contextMenu.classList.add("open");
+        const clickX = e.clientX || e.changedTouches.clientX;
+        const clickY = e.clientY || e.changedTouches.clientY;
+        contextMenu.style.top = `${clickY}px`; contextMenu.style.left = `${clickX}px`;
+        contextMenuOverlay.classList.add("open"); contextMenu.classList.add("open");
 
         setTimeout(() => {
             const menuRect = contextMenu.getBoundingClientRect();
-            if (menuRect.bottom > window.innerHeight) {
-                contextMenu.style.top = `${window.innerHeight - menuRect.height - 10}px`;
-            }
-            if (menuRect.right > window.innerWidth) {
-                contextMenu.style.left = `${window.innerWidth - menuRect.width - 10}px`;
-                contextMenu.style.transformOrigin = 'top right';
-            }
+            if (menuRect.bottom > window.innerHeight) { contextMenu.style.top = `${window.innerHeight - menuRect.height - 10}px`; }
+            if (menuRect.right > window.innerWidth) { contextMenu.style.left = `${window.innerWidth - menuRect.width - 10}px`; contextMenu.style.transformOrigin = 'top right'; }
         }, 0);
     }
 
     function closeContextMenu() {
-        contextMenuOverlay.classList.remove("open");
-        contextMenu.classList.remove("open");
+        contextMenuOverlay.classList.remove("open"); contextMenu.classList.remove("open");
         contextMenu.style.transformOrigin = 'top left';
     }
     contextMenuOverlay.onclick = closeContextMenu;
@@ -293,47 +295,90 @@
     }
 
 
-    /* ====== Handlers and functions ====== */
-    function addThoughtOrRational() {
-      const text = newText.value.trim();
-      let belief = parseInt(newPct.value, 10);
-      if (!text) return;
-      if (isNaN(belief)) belief = 0; belief = Math.max(0, Math.min(100, belief));
-      const chat = getActiveChat();
-      if (editingRational) {
-        chat.thoughts[editingRational.thoughtIdx].rationals[editingRational.rationalIdx] = { text, percent: belief };
-        editingRational = null; newText.placeholder = "Опиши автоматическую негативную мысль...";
-      } else { chat.thoughts.push({ text, beliefPercent: belief, distortions: [], rationals: [] }); }
-      save(); render();
-      newText.value = ""; newPct.value = "";
-      autoExpandTextarea(newText);
-      newText.blur(); newPct.blur();
-    }
-    
-    function addRational(idx) {
-      const chat = getActiveChat(); const thought = chat.thoughts[idx];
-      thought.rationals = thought.rationals || []; const rIdx = thought.rationals.length;
-      thought.rationals.push({ text: "", percent: 0 }); save(); renderUI();
-      editingRational = { thoughtIdx: idx, rationalIdx: rIdx };
-      newText.value = ""; newText.placeholder = "Впишите новую рациональную мысль...";
-      newPct.value = ""; newText.focus(); autoExpandTextarea(newText);
+    /* ====== Input Modal Functions ====== */
+
+    function openInputModal(modeType, tIdx = null, rIdx = null) {
+        inputModalMode = { type: modeType, tIdx, rIdx };
+        inputModalText.value = '';
+        inputModalPct.value = '';
+        
+        switch (modeType) {
+            case 'newThought':
+                inputModalTitle.textContent = 'Новая мысль';
+                inputModalText.placeholder = 'Опиши автоматическую негативную мысль...';
+                break;
+            case 'newRational':
+                inputModalTitle.textContent = 'Новый рационал';
+                inputModalText.placeholder = 'Впишите новую рациональную мысль...';
+                break;
+            case 'editThought':
+                inputModalTitle.textContent = 'Редактировать мысль';
+                const t = getActiveChat().thoughts[tIdx];
+                inputModalText.value = t.text;
+                inputModalPct.value = t.beliefPercent;
+                break;
+            case 'editRational':
+                inputModalTitle.textContent = 'Редактировать рационал';
+                const r = getActiveChat().thoughts[tIdx].rationals[rIdx];
+                inputModalText.value = r.text;
+                inputModalPct.value = r.percent;
+                break;
+        }
+
+        inputModalOverlay.classList.add('open');
+        inputModal.classList.add('open');
+        setTimeout(() => inputModalText.focus(), 300);
     }
 
-    function editThought(idx){
-      const chat = getActiveChat(); const t = chat.thoughts[idx];
-      const newTextVal = prompt("Изменить мысль:", t.text || ""); if(newTextVal === null) return;
-      let newPctVal = parseInt(prompt("Во сколько процентов веришь? (0-100)", t.beliefPercent ?? ""),10);
-      newPctVal = Math.max(0, Math.min(100, newPctVal)); t.text = newTextVal.trim();
-      t.beliefPercent = newPctVal; save(); render();
+    function closeInputModal() {
+        inputModalOverlay.classList.remove('open');
+        inputModal.classList.remove('open');
+        inputModalText.blur(); inputModalPct.blur();
     }
+    inputModalOverlay.onclick = closeInputModal;
 
-    function editRational(tIdx, rIdx) {
-        const chat = getActiveChat(); const r = chat.thoughts[tIdx].rationals[rIdx];
-        const newTextVal = prompt("Изменить рационал:", r.text || ""); if (newTextVal === null) return;
-        let newPctVal = parseInt(prompt("Во сколько процентов веришь в рационал? (0-100)", r.percent ?? ""), 10);
-        newPctVal = Math.max(0, Math.min(100, newPctVal)); r.text = newTextVal.trim();
-        r.percent = newPctVal; save(); render();
+
+    function handleInputModalSubmit() {
+        const text = inputModalText.value.trim();
+        let belief = parseInt(inputModalPct.value, 10);
+        if (!text) return;
+        if (isNaN(belief)) belief = 0; belief = Math.max(0, Math.min(100, belief));
+        const chat = getActiveChat();
+
+        const { type, tIdx, rIdx } = inputModalMode;
+
+        if (type === 'newThought') {
+            chat.thoughts.push({ text, beliefPercent: belief, distortions: [], rationals: [] });
+        } else if (type === 'newRational') {
+            chat.thoughts[tIdx].rationals.push({ text, percent: belief });
+        } else if (type === 'editThought') {
+            chat.thoughts[tIdx].text = text;
+            chat.thoughts[tIdx].beliefPercent = belief;
+        } else if (type === 'editRational') {
+            chat.thoughts[tIdx].rationals[rIdx].text = text;
+            chat.thoughts[tIdx].rationals[rIdx].percent = belief;
+        }
+
+        save(); render();
+        closeInputModal();
     }
+    inputModalSendBtn.onclick = handleInputModalSubmit;
+
+    // Логика Enter в модальном окне
+    inputModalText.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (inputModalPct.value.trim() === "" && document.activeElement === inputModalText) { inputModalPct.focus(); } 
+        else { handleInputModalSubmit(); }
+      }
+    });
+
+    inputModalPct.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") { e.preventDefault(); handleInputModalSubmit(); }
+    });
+
+
+    /* ====== General Functions ====== */
 
     function openDistortionPanel(idx){
       distortionContent.innerHTML = "";
@@ -347,23 +392,15 @@
       });
       distortionPanel.classList.add("open");
     }
-
     function closeDistortionPanel(){ distortionPanel.classList.remove("open"); }
-    function openDistortionPanelForLast() {
-      const chat = getActiveChat();
-      if (!chat.thoughts.length) { alert("Сначала добавь мысль"); return; }
-      const idx = chat.thoughts.length - 1; openDistortionPanel(idx);
-    }
-
+    
     function toggleMenu() {
         const isOpen = sideDrawer.classList.toggle("open");
         document.body.classList.toggle('menu-open', isOpen);
         if (window.innerWidth <= 800) {
             mainGrid.classList.toggle('content-shifted', isOpen);
-            fixedInputArea.classList.toggle('input-shifted', isOpen);
         } else {
             mainGrid.classList.toggle('shifted', isOpen);
-            fixedInputArea.classList.toggle('shifted', isOpen);
         }
     }
 
@@ -371,40 +408,22 @@
         sideDrawer.classList.remove("open");
         document.body.classList.remove('menu-open');
         mainGrid.classList.remove('shifted', 'content-shifted');
-        fixedInputArea.classList.remove('shifted', 'input-shifted');
     }
     
-    function adjustChatPadding(){
-        const fixedInputEl = document.querySelector(".fixed-input");
-        if(fixedInputEl) { chatArea.style.paddingBottom = fixedInputEl.offsetHeight + 20 + "px"; }
-    }
-    function autoExpandTextarea(el) {
-        el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; adjustChatPadding();
-    }
 
     /* ====== Event Listeners ====== */
-    sendBtn.onclick = addThoughtOrRational;
-    newChatBtn.onclick = () => {
+    document.getElementById("newChatBtn").onclick = () => {
       const count = state.chats.length + 1; const name = "Чат " + count; const id = Date.now().toString(36);
       state.chats.push({id, name, thoughts: []}); state.activeChatId = id; save(); renderChats(); render();
     };
-    openDistBtn.onclick = openDistortionPanelForLast;
     menuBtn.onclick = toggleMenu;
-    window.addEventListener("resize", adjustChatPadding);
-    newText.addEventListener('input', () => autoExpandTextarea(newText));
-    newText.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        if (newPct.value.trim() === "" && document.activeElement === newText) { newPct.focus(); } else { addThoughtOrRational(); }
-      }
-    });
-    newPct.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); addThoughtOrRational(); } });
+
 
     /* ====== Swipe gestures for mobile (Telegram-like) ====== */
     let touchStartX = 0; let touchStartTime = 0;
-    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; touchStartTime = Date.now(); });
+    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); });
     document.body.addEventListener('touchend', e => {
-        const dx = e.changedTouches[0].clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
+        const dx = e.changedTouches.clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
         const SWIPE_THRESHOLD = 100; const SPEED_THRESHOLD = 0.3;
         if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) { if (!sideDrawer.classList.contains('open')) { toggleMenu(); } } 
         else if (dx < -SWIPE_THRESHOLD || (dx < -50 && speed > SPEED_THRESHOLD)) { if (sideDrawer.classList.contains('open')) { closeMenu(); } }
@@ -412,7 +431,6 @@
 
 
     /* ====== Init ====== */
-    adjustChatPadding();
     renderChats(); 
     render();
   </script>
