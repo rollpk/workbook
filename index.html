@@ -37,7 +37,7 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 .chat-item{ padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; color:var(--text); margin-bottom:6px; }
 .chat-item.active{ background:var(--accent); color:#fff; }
 .cheat-item{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:8px; cursor:pointer; color:var(--text); }
-.cheat-item:hover{ transform:translateY(-2px); background:rgba(255,255,255,0.03); }
+
 .note{ color:var(--muted); font-size:13px; margin-top:8px; }
 .menu-btn {
   position: fixed;
@@ -126,16 +126,7 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   color: var(--muted);
 }
 
-#cheatList {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-}
-#cheatList.open {
-  max-height: 500px; /* или cheatDiv.scrollHeight в JS */
-  opacity: 1;
-}
+
 
   
 #distortionPanel {
@@ -220,16 +211,38 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
   z-index: 2;
 }
 
+  /* Полностью скрыть боковую колонку по умолчанию */
+.grid {
+  grid-template-columns: 1fr !important;
+}
+
+/* Когда меню открыто — сдвигаем */
+.grid.shifted {
+  margin-left: 220px !important;
+}
+
+/* Чтоб справа ничего не висело */
+.side-section {
+  display: none !important;
+}
+
   
 </style>
 </head>
 <body>
 
+  <div id="distortionPanel">
+    <div id="distortionContent"></div>
+    <span class="close-distortion" onclick="closeDistortionPanel()">×</span>
+</div>
+</body>
+
+  
 <button class="icon-btn menu-btn" id="menuBtn">☰</button>
 
 <div class="side-drawer" id="sideDrawer">
   <h3>Чаты</h3>
-  <div id="chatList"></div>
+  
   <button class="icon-btn" id="newChatBtn" style="margin-top:10px;">+ Новый чат</button>
 </div>
 
@@ -247,14 +260,12 @@ body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(-
 <div class="fixed-input">
   <textarea id="newThoughtText" class="input-text" placeholder="Опиши автоматическую негативную мысль..." rows="1"></textarea>
   <input id="newThoughtPct" class="input-num" type="number" min="0" max="100" placeholder="На сколько % веришь?" />
-  <button id="addBtn" class="icon-btn send-btn">➤</button>
+ <button id="addBtn" class="icon-btn send-btn">➤</button>
+<button id="openDistBtn" class="icon-btn">Искажения</button>
 
 
 
-<div id="distortionPanel">
-    <div id="distortionContent"></div>
-    <span class="close-distortion" onclick="closeDistortionPanel()">×</span>
-</div>
+
 
 
 
@@ -282,22 +293,7 @@ function getActiveChat(){ return state.chats.find(c=>c.id===state.activeChatId);
 
 
 
-/* ====== Render cheats ====== */
-function renderCheats(){
-  cheatListEl.innerHTML="";
-  CHEATS.forEach(c=>{
-    const d=document.createElement("div"); d.className="cheat-item"; d.textContent=c;
-    d.onclick=()=>{
-      const chat=getActiveChat();
-      if(!chat.thoughts.length){ alert("Сначала добавь мысль."); return; }
-      const last=chat.thoughts[chat.thoughts.length-1];
-     last.distortions = last.distortions || [];
-if(!last.distortions.includes(c)) last.distortions.push(c);
- save(); render();
-    };
-    cheatListEl.appendChild(d);
-  });
-}
+
   
 
 const del = document.createElement("button");
@@ -335,6 +331,18 @@ distortBtn.onclick = (e) => {
     closeDistortionPanel(); // <-- закрываем предыдущую
     openDistortionPanel(idx);
 };
+    
+    function openDistortionPanelForLast() {
+    const chat = getActiveChat();
+    if (!chat.thoughts.length) {
+        alert("Сначала добавь мысль");
+        return;
+    }
+    const idx = chat.thoughts.length - 1;
+    openDistortionPanel(idx);
+}
+
+
 
 const del = document.createElement("button");
 del.className = "icon-btn ghost";
@@ -442,7 +450,7 @@ newText.focus();
 
   let newPctVal = parseInt(prompt("Во сколько процентов веришь? (0-100)", t.beliefPercent ?? ""),10);
 
-  if(isNaN(newPctVal)) newPctVal = 50;
+ 
   newPctVal = Math.max(0, Math.min(100, newPctVal));
 
   t.text = newTextVal.trim();
@@ -553,35 +561,10 @@ function toggleMenu() {
 
 
 
-  // Функция обработки кнопки "➤"
-function addThought() {
-  const text = newText.value.trim();
-  let belief = parseInt(newPct.value, 10);
-
-  if (!text) return;
-
-  if (isNaN(belief)) belief = 0;
-  belief = Math.max(0, Math.min(100, belief));
-
-  const chat = getActiveChat();
-  chat.thoughts.push({
-      text,
-      beliefPercent: belief,
-      distortions: [],
-      rationals: []
-  });
-
-  save();
-  render();
-  scrollToBottom();
-
-  newText.value = "";
-  newPct.value = "";
-  newText.style.height = "auto";
-}
+  
 
 
-  newText.addEventListener("keydown", e => {
+newText.addEventListener("keydown", function(e) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     addThought();
@@ -589,14 +572,8 @@ function addThought() {
 });
 
 
-// Привязываем функцию к кнопке "Добавить"
-addBtn.addEventListener('click', addThought);
-  
-  menuBtn.onclick = (e) => {
-    e.stopPropagation();
-    sideDrawer.classList.toggle("open");
-    document.querySelector(".grid").classList.toggle("shifted");
-};
+
+
 
   function openDistortionPanel(idx){
     const panel = document.getElementById("distortionPanel");
@@ -651,7 +628,11 @@ function closeDistortionPanel(){
     newPct.value = "";
 }
 addBtn.onclick = addThought;
+document.getElementById("openDistBtn").onclick = () => {
+    openDistortionPanelForLast();
+};
 
+  
   
 </script>
 </body>
