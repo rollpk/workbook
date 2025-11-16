@@ -17,24 +17,26 @@
     body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
     body.menu-open { overflow: hidden; }
     
-    /* Ограничиваем контейнер чата на ПК */
     .grid{ display:grid; grid-template-columns:1fr; gap:0; max-width: 800px; margin: 0 auto; transition: transform 0.3s ease; }
     .side-section { display: none !important; }
     .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 0; }
     
-    /* Увеличен нижний паддинг, чтобы было куда скроллить, и верхний для первого сообщения */
+    /* Скрываем полосу прокрутки в Webkit-браузерах (Chrome, Safari, Opera) */
+    .chat-area::-webkit-scrollbar { display: none; }
+    /* Скрываем полосу прокрутки в IE, Edge и Firefox */
+    .chat-area { -ms-overflow-style: none; scrollbar-width: none; }
+
+
     .chat-area{ background:rgba(0,0,0,0.00); padding:14px 14px 80px 14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
     
     .chat-message-group { cursor: pointer; } 
     .chat-message{ display:block; max-width: 400px; padding:10px 14px; border-radius:14px; word-break:break-word; line-height:1.4; font-size: 15px; }
     .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
     .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
-    
-    /* Позиционирование мета-данных и искажений */
     .meta-row{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:6px; color:var(--muted); font-size:12px; }
     .meta-row.rat-meta { justify-content: flex-start; }
     .distortion-line { color:var(--muted); font-size:12px; margin-top: 4px; margin-bottom: 4px; }
-    .distortion-line.neg-dist { text-align: right; } /* Искажения к негативной мысли справа */
+    .distortion-line.neg-dist { text-align: right; }
 
     .icon-btn{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; }
     .icon-btn.ghost{ opacity:0.9; }
@@ -47,14 +49,12 @@
     .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
     .side-drawer h3 { margin-left: 0; }
     
-    .fixed-input, #openDistBtn { display: none !important; }
-
     #distortionPanel { 
         position: fixed; left: 0; right: 0; bottom: 0; height: auto; max-height: 80vh; 
         background: var(--card); border-top-left-radius: 16px; border-top-right-radius: 16px; 
         box-shadow: 0 -4px 15px rgba(0,0,0,0.4); padding: 16px; z-index: 5000; 
         transform: translateY(100%); transition: transform 0.3s ease; overflow-y: auto;
-        max-width: 600px; margin: 0 auto; left: 50%; transform: translateX(-50%) translateY(100%); /* Адаптация на ПК */
+        max-width: 600px; margin: 0 auto; left: 50%; transform: translateX(-50%) translateY(100%);
     }
     #distortionPanel.open { transform: translateX(-50%) translateY(0); }
     @media (max-width: 800px) {
@@ -81,7 +81,6 @@
     .menu-item:last-child { border-bottom: none; }
     .menu-item:hover { background: rgba(255,255,255,0.05); }
 
-    /* Адаптация модального окна ввода */
     #inputModalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 6000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     #inputModalOverlay.open { opacity: 1; pointer-events: auto; }
     #inputModal {
@@ -89,7 +88,7 @@
         z-index: 6001; transform: translateY(100%); transition: transform 0.3s ease;
         border-top-left-radius: 16px; border-top-right-radius: 16px;
         display: flex; flex-direction: column; gap: 10px;
-        max-width: 600px; margin: 0 auto; left: 50%; transform: translateX(-50%) translateY(100%); /* Адаптация на ПК */
+        max-width: 600px; margin: 0 auto; left: 50%; transform: translateX(-50%) translateY(100%);
     }
     #inputModal.open { transform: translateX(-50%) translateY(0); }
     @media (max-width: 800px) {
@@ -100,9 +99,9 @@
     .input-modal-header { display: flex; justify-content: space-between; align-items: center; }
     .input-modal-actions { display: flex; gap: 8px; }
     .input-modal-text {
-      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); width: 100%;
+      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.00); background:rgba(255,255,255,0.02); color:var(--text); width: 100%;
       resize: none; overflow-y: auto; max-height: 150px; transition: height 0.1s ease-out; box-sizing: border-box;
-      font-size: 15px; /* Увеличенный шрифт */
+      font-size: 15px;
     }
     .input-modal-num {
       width:70px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:var(--text); text-align:center;
@@ -196,18 +195,14 @@
       chatArea.innerHTML = "";
       
       // Клик на пустое поле чата вызывает меню
-      chatArea.onclick = (e) => {
+      const handleEmptyClick = (e) => {
+          // Убедимся, что клик не на элементе внутри
           if (e.target === chatArea || e.target.classList.contains('note')) {
               openContextMenu(e, null, 'empty');
           }
       };
-      chatArea.oncontextmenu = (e) => {
-          if (e.target === chatArea || e.target.classList.contains('note')) {
-             e.preventDefault();
-             openContextMenu(e, null, 'empty');
-          }
-      };
-
+      chatArea.onclick = handleEmptyClick;
+      chatArea.oncontextmenu = (e) => { e.preventDefault(); handleEmptyClick(e); };
 
       if (!chat.thoughts.length) { chatArea.innerHTML = '<div class="note">Пока нет мыслей. Нажмите в любом месте чата, чтобы добавить первую мысль.</div>'; }
 
@@ -231,7 +226,7 @@
             const dline = document.createElement("div"); 
             dline.className = "distortion-line neg-dist"; 
             dline.textContent = "Искажения: " + t.distortions.join(", "); 
-            group.insertBefore(dline, meta); /* Вставляем перед мета-данными */
+            group.insertBefore(dline, meta);
         }
         
         if (t.rationals && t.rationals.length) { 
@@ -257,6 +252,7 @@
       });
       scrollToBottom();
     }
+
 
     function render() { renderUI(); }
     function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
@@ -404,6 +400,14 @@
         mainGrid.classList.remove('shifted', 'content-shifted');
     }
     
+    // При тапе на оверлей чата закрываем меню
+    mainGrid.addEventListener('click', (e) => {
+        if (sideDrawer.classList.contains('open')) {
+            closeMenu();
+        }
+    });
+
+
     /* ====== Event Listeners ====== */
     document.getElementById("newChatBtn").onclick = () => {
       const count = state.chats.length + 1; const name = "Чат " + count; const id = Date.now().toString(36);
@@ -413,8 +417,9 @@
 
     /* ====== Swipe gestures for mobile (Telegram-like) ====== */
     let touchStartX = 0; let touchStartTime = 0;
-    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); });
-    document.body.addEventListener('touchend', e => {
+    // Свайпы теперь обрабатываются на основном контейнере mainGrid для лучшей работы
+    mainGrid.addEventListener('touchstart', e => { touchStartX = e.changedTouches.clientX; touchStartTime = Date.now(); });
+    mainGrid.addEventListener('touchend', e => {
         const dx = e.changedTouches.clientX - touchStartX; const dt = Date.now() - touchStartTime; const speed = Math.abs(dx) / dt;
         const SWIPE_THRESHOLD = 100; const SPEED_THRESHOLD = 0.3;
         if (dx > SWIPE_THRESHOLD || (dx > 50 && speed > SPEED_THRESHOLD)) { if (!sideDrawer.classList.contains('open')) { toggleMenu(); } } 
