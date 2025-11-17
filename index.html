@@ -13,55 +13,41 @@
       --rat:#3b3d42;
       --text:#e6e6e6;
       --accent:#4A90E2;
-      --input-bg: rgba(255,255,255,0.08); 
-      --drawer-width: 330px; 
+      --input-bg: rgba(255,255,255,0.08); /* Новый цвет для инпута */
     }
     body{ margin:0; font-family:Inter, sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
     body.menu-open { overflow: hidden; }
     
-    .grid{ 
-        display:grid; grid-template-columns:1fr; gap:0; 
-        max-width: 800px; 
-        margin: 0 auto; 
-        transition: transform 0.3s ease; 
-    }
+    .grid{ display:grid; grid-template-columns:1fr; gap:0; max-width: 800px; margin: 0 auto; transition: transform 0.3s ease; }
     .side-section { display: none !important; }
     .section { display: flex; flex-direction: column; position: relative; height: 100vh; padding-bottom: 0; }
     
 .chat-area {
-  overflow-y: scroll;
-  scrollbar-width: none;
-  padding-bottom: 80px; 
-  padding-top: 50px; 
+  overflow-y: scroll; /* или auto */
+  scrollbar-width: none; /* Firefox */
+  padding-bottom: 80px; /* Дополнительный отступ снизу для новой кнопки */
 }
 .chat-area::-webkit-scrollbar { width: 0; height: 0; }
 
+
+    /* Убрал user-select: none с body, чтобы можно было выделять текст в инпуте */
     .chat-message, .chat-message-group, .menu-item { cursor: pointer; } 
 
-    .chat-area{ background:rgba(0,0,0,0.00); padding:14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
+    .chat-area{ background:rgba(0,0,0,0.00); padding:40px 14px 80px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex: 1; }
     
     .chat-message{ 
         display:block; 
-        max-width: 85%; 
+        max-width: 400px; 
         padding:10px 14px; 
         border-radius:14px; 
         word-break:break-word; 
         line-height:1.4; 
         font-size: 15px;
-        position: relative;
-        padding-bottom: 18px; 
-        margin-left: auto; 
-        margin-right: auto;
+        position: relative; /* Чтобы позиционировать процент */
+        padding-bottom: 12px; /* Увеличил паддинг для процента */
     }
-    
-    @media (max-width: 800px) {
-        .chat-message.neg { margin-left: auto; margin-right: 0; }
-        .chat-message.rat { margin-right: auto; margin-left: 0; }
-    }
-
-    .chat-message.neg { background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
-    .chat-message.rat { background:var(--rat); color:#fff; border-bottom-left-radius:6px; }
-
+    .chat-message.neg { margin-left:auto; background:var(--neg); color:#fff; border-bottom-right-radius:6px; }
+    .chat-message.rat { margin-right:auto; background:var(--rat); color:#fff; border-bottom-left-radius:6px; max-width: 50%; } /* Установил max-width и для рационалов */
     .meta-row{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:6px; color:var(--muted); font-size:12px; }
     .meta-row.rat-meta { justify-content: flex-start; }
     .distortion-line { color:var(--muted); font-size:12px; margin-top: 4px; margin-bottom: 4px; }
@@ -69,7 +55,7 @@
 
     .icon-btn{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; }
     .icon-btn.ghost{ opacity:0.9; }
-    .side-drawer{ position:fixed; top:0; left:-350px; width:var(--drawer-width); height:100%; background:var(--card); padding:10px; box-shadow:2px 0 10px rgba(0,0,0,0.5); transition:left 0.3s; z-index:1000; overflow-y:auto; }
+    .side-drawer{ position:fixed; top:0; left:-350px; width:330px; height:100%; background:var(--card); padding:10px; box-shadow:2px 0 10px rgba(0,0,0,0.5); transition:left 0.3s; z-index:1000; overflow-y:auto; }
     .side-drawer.open{ left:0; }
     .chat-item{ padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; color:var(--text); margin-bottom:6px; }
     .chat-item.active{ background:var(--accent); color:#fff; }
@@ -80,7 +66,7 @@
     font-size:13px; 
     padding: 14px; 
     text-align: center; 
-    margin-top: 30px; 
+    margin-top: 80px; /* отступ сверху для первого сообщения */
 }
 
     .menu-btn { position: fixed; top: 10px; left: 10px; width: 36px; height: 36px; font-size: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); z-index: 2000; cursor: pointer; }
@@ -106,7 +92,8 @@
 
     @media(max-width:800px){ 
       .grid, .grid.shifted { max-width: 100vw; margin: 0; transform: translateX(0); }
-      .content-shifted { transform: translateX(var(--drawer-width)) !important; }
+      /* max-width убираем отсюда, т.к. он уже в .chat-message */
+      .content-shifted { transform: translateX(220px) !important; }
     }
 
     .context-menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 4000; opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
@@ -133,7 +120,7 @@
     }
 
     .input-modal-header { display: flex; justify-content: space-between; align-items: center; }
-    .input-modal-actions { display: flex; gap: 8px; align-items: center; }
+    .input-modal-actions { display: flex; gap: 8px; align-items: center; } /* Добавил align-items */
     .input-modal-text {
       padding:8px 10px; border-radius:10px; border:none; background:var(--input-bg); color:var(--text); width: 100%;
       resize: none; overflow-y: auto; max-height: 150px; transition: height 0.1s ease-out; box-sizing: border-box;
@@ -145,6 +132,7 @@
     }
     .input-modal-num::-webkit-outer-spin-button, .input-modal-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+    /* Стиль для процента внутри сообщения */
     .belief-percent {
         position: absolute;
         bottom: 2px;
@@ -153,10 +141,11 @@
         color: rgba(255, 255, 255, 0.7);
     }
     .chat-message.rat .belief-percent {
-        right: 8px;
-        left: auto;
+        right: auto;
+        left: 8px;
     }
 
+    /* Стиль для кнопки добавления новой мысли внизу чата */
     #newThoughtBtn {
         position: fixed;
         bottom: 16px;
@@ -217,6 +206,7 @@
 
 
   <script>
+    // --- Декларации DOM элементов (в начале скрипта) ---
     const chatArea = document.getElementById("chatArea");
     const sideDrawer = document.getElementById("sideDrawer");
     const menuBtn = document.getElementById("menuBtn");
@@ -232,28 +222,35 @@
     const inputModalText = document.getElementById("inputModalText");
     const inputModalPct = document.getElementById("inputModalPct");
     const inputModalSendBtn = document.getElementById("inputModalSendBtn");
+    // const newThoughtBtn = document.getElementById("newThoughtBtn"); // Already declared in HTML onclick
 
     let inputModalMode = {};
     let chats = [];
     let activeChatId = null;
+
+    // Ваши когнитивные искажения
     const CHEATS = ["Чтение мыслей", "Катастрофизация", "Долженствования", "Навешивание ярлыков", "Фильтрация", "Сверхобобщение", "Персонализация", "Мышление все или ничего"];
 
+    /* ====== Data Management & Storage ====== */
     function save() { localStorage.setItem('emotionDiaryChats', JSON.stringify(chats)); }
     function load() {
         const storedChats = localStorage.getItem('emotionDiaryChats');
         if (storedChats) { chats = JSON.parse(storedChats); } 
         else {
+            // Создаем начальный пример, если данных нет
             chats = [{ id: Date.now(), name: "Пример чата", thoughts: [
                 { text: "Я никогда не смогу это исправить, все ужасно.", beliefPercent: 90, distortions: ["Катастрофизация", "Все или ничего"], rationals: [
                     { text: "Я справлялся с трудностями раньше, и это не конец света.", percent: 50 }
                 ]}
             ]}];
         }
-        if (!activeChatId && chats.length > 0) { activeChatId = chats[chats.length - 1].id; }
+        if (chats.length > 0 && !activeChatId) { activeChatId = chats[0].id; }
         render();
     }
 
     function getActiveChat() { return chats.find(c => c.id === activeChatId); }
+
+    /* ====== UI Rendering ====== */
     function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
 
     function renderUI() {
@@ -264,29 +261,31 @@
       if (!chat || chat.thoughts.length === 0) {
         const note = document.createElement("div");
         note.className = "note";
-        note.textContent = "Нажмите + в правом нижнем углу, чтобы добавить первую мысль. Для редактирования или добавления рационала используйте долгое нажатие на мысль.";
+        note.textContent = "Нажмите + в правом нижнем углу, чтобы добавить первую мысль";
+        // attachTouchAndClick(note, 'empty'); // Убрал привязку контекстного меню к пустому месту, теперь есть кнопка +
         chatArea.appendChild(note);
-        chatArea.style.paddingTop = "calc(50vh - 100px)"; 
         return;
       }
-      chatArea.style.paddingTop = "50px";
 
       chat.thoughts.forEach((t, idx) => {
         const group = document.createElement("div");
         group.className = "chat-message-group";
 
+        // Негативная мысль
         const neg = document.createElement("div");
         neg.className = "chat-message neg";
         neg.textContent = t.text || "(пусто)";
-        // Используем новый обработчик только для контекстного меню
-        attachContextMenuOnly(neg, 'thought', idx);
+        attachTouchAndClick(neg, 'thought', idx);
 
+        // Процент веры внутри сообщения
         const negPct = document.createElement("span");
         negPct.className = "belief-percent";
         negPct.textContent = t.beliefPercent + "%";
         neg.appendChild(negPct);
+
         group.appendChild(neg);
 
+        // Искажения
         if (t.distortions && t.distortions.length) {
           t.distortions.forEach(d => {
             const dist = document.createElement("div");
@@ -296,6 +295,7 @@
           });
         }
         
+        // Рационалы внутри мысли
         if (t.rationals && t.rationals.length) { 
             t.rationals.forEach((r, ri) => { 
                 const rGroup = document.createElement("div");
@@ -304,9 +304,9 @@
                 const rat = document.createElement("div"); 
                 rat.className = "chat-message rat"; 
                 rat.textContent = r.text || "(пусто)"; 
-                // Используем новый обработчик только для контекстного меню
-                attachContextMenuOnly(rat, 'rational', idx, ri);
+                attachTouchAndClick(rat, 'rational', idx, ri);
 
+                // Процент уверенности внутри рационала
                 const ratPct = document.createElement("span");
                 ratPct.className = "belief-percent";
                 ratPct.textContent = (r.percent || 0) + "%"; 
@@ -320,42 +320,38 @@
         chatArea.appendChild(group);
       });
 
+      // Инициация прокрутки после того, как элементы добавлены
       setTimeout(scrollToBottom, 50); 
     }
 
-    // НОВАЯ функция: открывает меню только по долгому нажатию/контекстному клику
-    function attachContextMenuOnly(el, type, tIdx, rIdx = null) {
-        // Предотвращаем стандартное контекстное меню браузера
-        el.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    function attachTouchAndClick(el, type, tIdx, rIdx = null) {
+      let touchTimer;
+      let isLongTouch = false;
+
+      el.addEventListener('touchstart', (e) => {
+          // Убедимся, что выделение текста не сработает при таче
+          e.stopPropagation(); 
+          isLongTouch = false;
+          touchTimer = setTimeout(() => {
+              isLongTouch = true;
+              openContextMenu({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }, tIdx, type, rIdx);
+          }, 500); // 500ms для лонг-пресса
+      });
+
+
+      el.addEventListener('touchend', () => {
+          clearTimeout(touchTimer);
+      });
+      el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // Открываем меню только если это был быстрый клик (не лонг-пресс)
+          if (!isLongTouch) {
             openContextMenu(e, tIdx, type, rIdx);
-        });
-
-        // Эмуляция contextmenu на тач-устройствах через touchstart/touchend
-        let touchStartTimer = null;
-
-        el.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            touchStartTimer = setTimeout(() => {
-                 // Триггерим открытие меню через 500мс
-                 openContextMenu({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }, tIdx, type, rIdx);
-            }, 500); 
-        });
-
-        el.addEventListener('touchend', (e) => {
-            clearTimeout(touchStartTimer);
-            // Предотвращаем 'click' или 'pointerdown' по умолчанию после любого тача на элементе с меню
-            e.preventDefault(); 
-        }, true); // Используем фазу захвата для надежности
-        
-        // Убеждаемся, что обычный клик не открывает меню
-        el.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+          }
+          isLongTouch = false; // Сброс флага
+      });
     }
-
 
     function renderChatList() {
         chatListArea.innerHTML = "";
@@ -371,7 +367,9 @@
     function render() { renderUI(); renderChatList(); }
    
 
+    /* ====== Context Menu Functions ====== */
     function openContextMenu(e, tIdx, type, rIdx = null) {
+        // Убираем preventDefault() из e, т.к. мы уже обработали его в attachTouchAndClick
         closeContextMenu();
 
         const menuItems = [];
@@ -391,15 +389,15 @@
         menuItems.forEach(item => {
             const itemEl = document.createElement("div"); itemEl.className = "menu-item"; itemEl.textContent = item.name;
             itemEl.onclick = (event) => { 
-                event.stopPropagation();
+                event.stopPropagation(); // Останавливаем всплытие клика
                 item.action(); 
                 closeContextMenu(); 
             };
             contextMenu.appendChild(itemEl);
         });
 
-        const clickX = e.clientX || (e.changedTouches ? e.changedTouches.clientX : 0);
-        const clickY = e.clientY || (e.changedTouches ? e.changedTouches.clientY : 0);
+        const clickX = e.clientX || (e.changedTouches ? e.changedTouches[0].clientX : 0); // Исправлено получение координат тача
+        const clickY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : 0);
         
         contextMenu.style.top = `${clickY}px`; contextMenu.style.left = `${clickX}px`;
         contextMenuOverlay.classList.add("open"); contextMenu.classList.add("open");
@@ -427,6 +425,7 @@
     }
 
 
+    /* ====== Input Modal Functions ====== */
     function openInputModal(modeType, tIdx = null, rIdx = null) {
         inputModalMode = { type: modeType, tIdx, rIdx };
         inputModalText.value = ''; inputModalPct.value = '';
@@ -480,6 +479,7 @@
     inputModalText.addEventListener('input', () => autoExpandTextarea(inputModalText));
 
 
+    /* ====== General Functions ====== */
     function openDistortionPanel(idx){
       distortionContent.innerHTML = "";
       CHEATS.forEach(c => {
@@ -516,6 +516,8 @@
         }
     };
 
+
+    // --- Инициализация приложения ---
     load();
 
   </script>
